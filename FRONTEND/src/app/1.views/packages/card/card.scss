@@ -1,0 +1,97 @@
+/* Variables */
+$color-primary: #341555;
+$color-border: #E0E0E0;
+$radius: 5px;
+
+.card-container {
+  position: relative;
+  background-color: #fff;
+  border: 1px solid $color-border;
+  border-radius: $radius;
+  padding: 2rem;
+  
+  /* Layout Vertical Flexible */
+  display: flex;
+  flex-direction: column;
+  
+  /* Altura base y transición */
+  height: 85%; /* Altura mínima para que se vean uniformes */
+  width: 200px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+  /* --- SECCIONES --- */
+  
+  .card-header {
+    margin-bottom: 1rem;
+    text-align: center;
+    /* Estilos base para el título si el padre no le pone */
+    font-size: 1rem;
+    font-weight: 700;
+    color: $color-primary;
+  }
+
+  .card-price {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 900;
+    color: #333;
+  }
+
+  .card-features {
+    flex-grow: 1; /* Ocupa todo el espacio disponible empujando el footer abajo */
+    margin-bottom: 2rem;
+    color: #666;
+    font-size: 0.95rem;
+    
+    /* Opcional: Estilo por defecto para listas ul/li dentro de features */
+    ::ng-deep ul {
+      list-style: none;
+      padding: 0;
+      li {
+        margin-bottom: 0.5rem;
+        // text-align: center;
+      }
+    }
+  }
+
+  .card-footer {
+    margin-top: auto; /* Asegura que el botón siempre esté al fondo */
+  }
+
+
+  /* --- ESTADO RECOMENDADO --- */
+  &.is-recommended {
+    border: 2px solid $color-primary;
+    
+    /* Opción A: Transform (Crece visualmente) */
+    transform: scale(1.05); 
+    z-index: 10;
+    box-shadow: 0 10px 30px rgba(52, 21, 85, 0.15);
+
+    /* Opción B: Si prefieres altura física real en lugar de escala:
+       min-height: 440px; 
+       margin-top: -20px; 
+    */
+  }
+}
+
+/* Badge */
+.recommended-badge {
+  position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #341555;
+    color: white;
+    padding: 10px 2px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+    text-align: center;
+    border-top-left-radius: $radius;
+    border-top-right-radius: $radius;
+}

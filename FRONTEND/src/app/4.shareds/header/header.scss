@@ -1,0 +1,66 @@
+.app-header {
+    position: relative;
+    height: 70px;
+    /* Ajusta a tu gusto */
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Separa los 3 bloques */
+    padding: 0 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    /* Sombra sutil como la foto */
+    gap: 20px;
+
+    /* 1. Título */
+    .header-left {
+        .page-title {
+            font-size: 1.5rem;
+            color: #341555;
+            /* Tu color morado */
+            font-weight: 700;
+            margin: 0;
+            white-space: nowrap;
+        }
+    }
+
+    /* 2. Centro (Ocupa el espacio disponible) */
+    .header-center {
+        flex-grow: 1;
+        /* Esto hace que el centro se estire */
+        display: flex;
+        justify-content: space-evenly;
+        /* Alineamos el contenido dinámico a la derecha junto a la campana */
+        align-items: center;
+    }
+
+    /* 3. Notificaciones estáticas */
+    .header-right-static {
+        border-left: 1px solid #eee;
+        /* Separador sutil opcional */
+        padding-left: 15px;
+        margin-left: 15px;
+
+        .notification-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #341555;
+            cursor: pointer;
+            position: relative;
+
+            &:hover {
+                transform: scale(1.1);
+            }
+        }
+    }
+}
+
+.none {
+    background-color: white;
+    width: var(--aside-width);
+    height: 100%;
+    position: absolute;
+    left: 0;
+    transform: translateX(-100%);
+}

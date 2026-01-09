@@ -1,0 +1,31 @@
+<section class="general_container">
+    <div class="panel">
+        <div class="title">
+            <h2>Elige el plan que mejor se adapta a tu <br> crecimiento profesional.</h2>
+        </div>
+        <div class="description">
+            <span>Planes flexibles, soporte constante y acceso a herramientas exclusivas.</span>
+        </div>
+        <div class="cards">
+            @for (package of packagesService.getPackages(); track $index) {
+            <app-card [config]="{recommended: package.recomended || false, buttonLabel: package.time}">
+                <h3 card-title>{{ package.time }}</h3>
+                <div card-price>{{ package.price }}</div>
+
+                <ul card-features>
+                    @for (feature of package.features; track $index) {
+                    <li>{{ feature }}</li>
+                    }
+                </ul>
+            </app-card>
+            }
+        </div>
+        <div class="help-section">
+            <div class="line"></div>
+
+            <a class="help-text">
+                ¿Tienes dudas?
+            </a>
+        </div>
+    </div>
+</section>

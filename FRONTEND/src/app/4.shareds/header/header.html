@@ -1,0 +1,17 @@
+<header class="app-header">
+  <div class="none"></div>
+  <div class="header-left">
+    <h1 class="page-title">{{ headerService.title$ | async }}</h1>
+  </div>
+
+  <div class="header-center">
+    <ng-container *ngTemplateOutlet="headerService.template$ | async"></ng-container>
+  </div>
+
+  <div class="header-right-static">
+    <button class="notification-btn">
+      <i class="fa-solid fa-bell"></i>
+      </button>
+  </div>
+
+</header>

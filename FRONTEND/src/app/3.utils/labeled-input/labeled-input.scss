@@ -1,0 +1,139 @@
+
+/* Variables de colores basadas en tu imagen */
+$color-primary-text: #341555;   /* Morado oscuro (Label) */
+$color-input-bg: #F8F7FC;       /* Gris/Morado muy claro (Fondo Input) */
+$color-input-border: #E0E0E0;   /* Borde sutil */
+$color-placeholder: #A09BAF;    /* Color del icono y placeholder */
+$color-error: #D32F2F;          /* Rojo standard */
+$color-focus: #6A4C93;          /* Morado medio para el foco */
+$border-radius: 10px;           /* Redondeado de la foto */
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;       /* Ocupa todo el ancho disponible */
+  // margin-bottom: 1rem;
+  font-family: 'Lato', sans-serif; /* Tu fuente */
+}
+
+/* --- LABEL --- */
+.input-label {
+  font-size: 1rem;
+  font-weight: 700; /* Bold */
+  color: $color-primary-text;
+  margin-bottom: 0.5rem; /* Espacio entre label e input */
+  
+  .required {
+    color: $color-error;
+    margin-left: 2px;
+  }
+}
+
+/* --- WRAPPER (Para posicionar iconos absolutos) --- */
+.input-wrapper {
+  position: relative;
+  width: 100%;
+  /* ALTURA FIJA según requerimiento */
+  height: 50px; 
+}
+
+/* --- INPUT FIELD --- */
+.custom-input {
+  width: 100%;
+  height: 100%; /* Llena los 50px del padre */
+  background-color: $color-input-bg;
+  border: 1px solid transparent; /* Borde invisible por defecto */
+  border-radius: $border-radius;
+  padding: 0px 16px; /* Padding standard */
+  font-size: 1rem;
+  color: #333;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  box-shadow: 0px 2px 3px 1px #0000004a;
+
+  &::placeholder {
+    color: $color-placeholder;
+    opacity: 0.8;
+  }
+
+  /* Si hay icono a la izquierda, damos espacio */
+  &.has-left-icon {
+    padding-left: 45px; 
+  }
+
+  /* NUEVO: Si hay icono o password a la derecha, damos espacio */
+  &.has-right-icon {
+    padding-right: 45px;
+  }
+
+  /* Estados */
+  &:focus {
+    outline: none;
+    background-color: #fff;
+    border-color: $color-focus;
+    box-shadow: 0 0 0 3px rgba(106, 76, 147, 0.1); /* Glow morado suave */
+  }
+
+  &.has-error {
+    border-color: $color-error;
+    background-color: #FFF0F0;
+  }
+}
+
+/* --- ICONOS --- */
+.left-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8E869E; /* Color grisáceo/morado del icono en la foto */
+  font-size: 1.2rem;
+  pointer-events: none; /* Click traspasa al input */
+}
+
+.right-icon-container {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $color-placeholder;
+  display: flex; /* Para centrar bien spinner o iconos */
+  align-items: center;
+}
+
+/* NUEVO: Estilo para el botón del ojito clickable */
+.password-toggle-icon {
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: $color-primary-text; /* Se pone morado oscuro al pasar el mouse */
+  }
+}
+
+/* --- ERROR TEXT --- */
+.error-message {
+  font-size: 0.85rem;
+  color: $color-error;
+  margin-top: 4px;
+}
+
+/* --- SPINNER DE CARGA (Opcional) --- */
+.spinner {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-left-color: $color-primary-text;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* IMPORTANTE: Ocultar el ojo feo nativo de Edge/IE */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }

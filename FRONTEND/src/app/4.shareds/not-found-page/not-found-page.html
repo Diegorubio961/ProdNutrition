@@ -1,0 +1,26 @@
+<div class="not-found-container">
+
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+
+  <div class="content-wrapper">
+    <div class="illustration-placeholder">
+      <div class="floating-element">
+        <span>?</span>
+      </div>
+    </div>
+
+    <h1 class="error-code">404</h1>
+    <h2 class="error-title">Ups, parece que te has perdido.</h2>
+    <p class="error-description">
+      La página que buscas no existe, ha sido movida o quizás nunca estuvo aquí.
+    </p>
+
+    <div class="action-button">
+        <app-button 
+            [config]="{ label: 'Volver al Inicio', color: 'primary', onClick: goHome }">
+        </app-button>
+    </div>
+  </div>
+
+</div>

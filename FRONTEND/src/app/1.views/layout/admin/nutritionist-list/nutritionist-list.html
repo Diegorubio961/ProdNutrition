@@ -1,0 +1,30 @@
+<ng-template #headerActions>
+  <div class="custom-actions-container">
+    
+    <div class="search-box">
+      <app-labeled-input [config]="{
+      placeholder: 'Buscar paciente por nombre o documento',
+      rightIcon: 'fa-solid fa-magnifying-glass',
+      }"></app-labeled-input>
+    </div>
+
+    <div class="state-dropdown">
+        <app-dropdown [config]="{
+        options: [
+          { label: 'Activo', value: 'active' },
+          { label: 'Inactivo', value: 'inactive' },
+          { label: 'Todos', value: 'all' },
+        ],
+        placeholder: 'Estado',
+        labelKey: 'label',
+        valueKey: 'value',
+        clearable: true,  
+        multiSelect: true,   
+        searchable: true,   
+        }"></app-dropdown>
+    </div>
+
+  </div>
+</ng-template>
+
+<p>nutritionist-list works!</p>

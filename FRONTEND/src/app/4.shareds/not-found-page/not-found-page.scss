@@ -1,0 +1,122 @@
+/* --- Variables de tu sistema --- */
+$color-primary: #341555;
+$color-primary-light: rgba(52, 21, 85, 0.05); /* Versión muy transparente del morado */
+$color-bg-light: #F8F7FC; /* El fondo claro que usas en los inputs */
+$color-text-gray: #666666;
+
+.not-found-container {
+  position: relative; /* Para posicionar las formas de fondo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* Ocupa toda la pantalla */
+  background-color: $color-bg-light;
+  font-family: 'Lato', sans-serif;
+  overflow: hidden; /* Para que las formas no generen scroll */
+  padding: 2rem;
+}
+
+/* Contenedor central */
+.content-wrapper {
+  position: relative;
+  z-index: 10; /* Encima de las formas de fondo */
+  text-align: center;
+  max-width: 500px;
+}
+
+/* --- TIPOGRAFÍA --- */
+.error-code {
+  font-size: 8rem; /* Muy grande e impactante */
+  font-weight: 900;
+  color: $color-primary;
+  margin: 0;
+  line-height: 1;
+  /* Un pequeño efecto de sombra suave */
+  text-shadow: 4px 4px 0px rgba(52, 21, 85, 0.1);
+}
+
+.error-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: $color-primary;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.error-description {
+  font-size: 1rem;
+  color: $color-text-gray;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.action-button {
+  display: flex;
+  justify-content: center;
+  /* Aseguramos que el botón no sea excesivamente ancho en la 404 */
+  app-button {
+    min-width: 200px;
+  }
+}
+
+
+/* --- ILUSTRACIÓN (Placeholder con CSS) --- */
+/* Esto simula una ilustración moderna mientras consigues un SVG real */
+.illustration-placeholder {
+  height: 150px;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .floating-element {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, $color-primary, lighten($color-primary, 20%));
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; /* Forma orgánica */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+    font-weight: bold;
+    box-shadow: 0 10px 20px rgba(52, 21, 85, 0.2);
+    animation: float 4s ease-in-out infinite;
+  }
+}
+
+/* --- VISUALES DE FONDO (Decoración) --- */
+.bg-shape {
+  position: absolute;
+  border-radius: 50%;
+  background-color: $color-primary-light;
+  z-index: 1;
+}
+
+.shape-1 {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  right: -50px;
+}
+
+.shape-2 {
+  width: 300px;
+  height: 300px;
+  bottom: -50px;
+  left: -100px;
+  background-color: rgba(52, 21, 85, 0.03); /* Un tono diferente */
+}
+
+/* Animación de flotar suave */
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .error-code { font-size: 6rem; }
+  .error-title { font-size: 1.5rem; }
+}

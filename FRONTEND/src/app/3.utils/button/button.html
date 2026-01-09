@@ -1,0 +1,26 @@
+<div>
+  <button
+    [type]="config.type || 'button'"
+    [disabled]="config.disabled || config.loading"
+    
+    class="custom-button"
+    [ngClass]="'variant-' + (config.color || 'primary')" 
+    
+    [class.is-loading]="config.loading"
+    (click)="handleClick($event)"
+  >
+    
+    <span class="button-content" *ngIf="!config.loading">
+      
+      <i *ngIf="config.leftIcon" [class]="config.leftIcon + ' left-icon'"></i>
+      
+      <span class="label-text">{{ config.label }}</span>
+      
+      <i *ngIf="config.rightIcon" [class]="config.rightIcon + ' right-icon'"></i>
+      
+    </span>
+
+    <span *ngIf="config.loading" class="button-spinner"></span>
+
+  </button>
+</div>

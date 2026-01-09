@@ -1,0 +1,106 @@
+<section class="general_container">
+    <div class="carousel-container">
+        <div class="logo">
+            <img src="assets/img/logos/LOGO.png" alt="logo">
+            <h1>GRAPE</h1>
+        </div>
+        
+        <div *ngFor="let slide of slides; let i = index" class="slide" [class.active]="i === currentIndex">
+            <img [src]="slide" alt="Slide imagen informativa">            
+        </div>
+        <div class="square"></div>
+        <div class="welcome">
+            <span>Bienvenido</span>
+        </div>
+    </div>
+    <div class="right">
+        @if (!isRegisterMode) {
+        <h2>Iniciar Sesión</h2>
+        <div class="inputs">
+            <app-labeled-input [config]="{
+            label: 'Usuario', 
+            autocomplete: 'off',
+            placeholder: 'Fabian...',
+            leftIcon: 'fa-regular fa-envelope',            
+            }"></app-labeled-input>
+            <app-labeled-input [config]="{
+            label: 'Contraseña', 
+            type: 'password',
+            placeholder: '********',
+            leftIcon: 'fa-solid fa-lock',
+            }"></app-labeled-input>
+        </div>
+        <div class="remember">
+            <app-checkbox [config]="{
+            label: 'Recuérdame',
+            labelPosition: 'after',
+            }"></app-checkbox>
+            <a href="">Olvidaste tu contraseña?</a>
+        </div>
+        <app-button [config]="{
+            label: 'Iniciar Sesión',
+            type: 'submit',            
+        }"></app-button>
+        <div class="separator-container">
+            <div class="line"></div>
+            <span class="separator-text">O</span>
+            <div class="line"></div>
+        </div>
+        <app-button [config]="{
+            label: 'Iniciar sesión con Google',                        
+            leftIcon: 'fa-brands fa-google',
+            color: 'secondary',
+        }"></app-button>
+        }
+        @else {
+        <h2>Registrarse</h2>
+        <div class="inputs">
+            <app-labeled-input [config]="{
+            label: 'Nombre completo', 
+            autocomplete: 'off',
+            placeholder: 'Fabian Perez',
+            }"></app-labeled-input>
+           <app-labeled-input [config]="{
+            label: 'Cedula', 
+            autocomplete: 'off',
+            placeholder: '1234567890',
+            type: 'number',
+            }"></app-labeled-input>
+            <app-labeled-input [config]="{
+            label: 'Teléfono', 
+            autocomplete: 'off',
+            placeholder: '3103351122',
+            type: 'number',
+            }"></app-labeled-input>
+            <app-labeled-input [config]="{
+            label: 'Correo', 
+            autocomplete: 'off',
+            placeholder: 'correo@example.com',
+            type: 'email',
+            }"></app-labeled-input>
+            <app-labeled-input [config]="{
+            label: 'Contraseña', 
+            autocomplete: 'off',
+            placeholder: '********',
+            type: 'password',
+            }"></app-labeled-input>
+            <app-checkbox [config]="{
+            label: 'Acepto los términos y condiciones',
+            labelPosition: 'after',
+            }"></app-checkbox>
+        </div>
+        <div class="register_buttons">
+            <app-button [config]="{
+            label: 'Registrarse',
+            type: 'submit',            
+        }"></app-button>
+            <app-button [config]="{
+            label: 'Registrarse con Google',                        
+            leftIcon: 'fa-brands fa-google',
+            color: 'secondary',
+        }"></app-button>
+        </div>
+        }
+
+    </div>
+</section>

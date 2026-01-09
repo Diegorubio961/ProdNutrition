@@ -1,0 +1,87 @@
+<aside class="sidebar">
+
+    <div class="sidebar-header">
+        <div class="avatar-container">
+            <img *ngIf="auth.getUser()?.user?.photoURL; else defaultIcon" [src]="auth.getUser()?.user?.photoURL"
+                alt="Avatar">
+            <ng-template #defaultIcon>
+                <div class="initials">{{ getInitials(auth.getUser()?.user?.name || '') }}</div>
+            </ng-template>
+        </div>
+
+        <div class="user-info">
+            <span class="user-name" [title]="auth.getUser()?.user?.name">
+                {{ auth.getUser()?.user?.name }}
+            </span>
+
+            <div class="role-switcher" [class.clickable]="(auth.getUser()?.user?.role?.length || 0) > 1"
+                (click)="toggleRoleSelector($event)">
+
+                <span class="user-role">
+                    {{ auth.getUser()?.activeRole ?? (auth.getUser()?.user?.role?.[0] || auth.getUser()?.user?.role) }}
+                </span>
+
+                <i *ngIf="(auth.getUser()?.user?.role?.length || 0) > 1" class="fa-solid fa-chevron-down role-arrow"
+                    [class.rotated]="showRoleSelector"></i>
+
+                <ul class="role-dropdown" *ngIf="showRoleSelector">
+                    <li *ngFor="let role of (auth.getUser()?.user?.role || [])" (click)="switchRole(role)"
+                        [class.active]="role === auth.getUser()?.activeRole">
+                        {{ role }}
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="separator"></div>
+
+    <nav class="sidebar-menu">
+        <ul>
+            <ng-container *ngFor="let menu of menuItems">
+                <ng-container *ngTemplateOutlet="menuNode; context: { item: menu, level: 0 }"></ng-container>
+            </ng-container>
+        </ul>
+    </nav>
+
+    <ng-template #menuNode let-item="item" let-level="level">
+        <li>
+            <div class="menu-item-row" [class.active]="item.active" [style.padding-left.px]="20 + (level * 15)"
+                (click)="handleNavigation(item)">
+
+                <div class="content-area">
+                    <i [class]="item.icon" *ngIf="item.icon"></i>
+                    <span class="label">{{ item.label }}</span>
+                </div>
+
+                <div class="expand-area" *ngIf="item.children && item.children.length > 0"
+                    (click)="toggleItem($event, item)">
+                    <i class="fa-solid fa-chevron-down arrow" [class.rotated]="item.expanded"></i>
+                </div>
+            </div>
+
+            <ul *ngIf="item.children && item.expanded" [@slideInOut] class="submenu-list">
+                <ng-container *ngFor="let child of item.children">
+                    <ng-container *ngTemplateOutlet="menuNode; context: { item: child, level: level + 1 }">
+                    </ng-container>
+                </ng-container>
+            </ul>
+        </li>
+    </ng-template>
+
+    <div class="spacer"></div>
+    <div class="separator"></div>
+
+    <div class="sidebar-footer">
+        <div class="menu-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Configuración</span>
+        </div>
+        <div class="menu-item logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Cerrar Sesión</span>
+        </div>
+    </div>
+
+</aside>

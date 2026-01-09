@@ -1,0 +1,292 @@
+/* --- VARIABLES --- */
+$primary-color: #341555;   /* Morado oscuro base */
+$primary-light: #4A2470;   /* Tono activo/hover */
+$text-white: #ffffff;
+$text-gray: #B0A4C0;       /* Texto secundario */
+$separator-color: rgba(255, 255, 255, 0.1);
+$active-bar-color: #A580C8; /* Barrita lateral */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* --- CONTENEDOR PRINCIPAL --- */
+.sidebar {
+  width: var(--aside-width, 250px);
+  height: 100%;
+  background-color: $primary-color;
+  color: $text-white;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  font-family: 'Lato', sans-serif;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  box-sizing: border-box;
+}
+
+/* --- 1. HEADER (Avatar y Usuario) --- */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 0.5rem 1rem 0.5rem;
+  position: relative; /* Importante para el z-index local */
+  z-index: 20; /* Asegura que el header esté por encima del menú scrollable */
+
+  .avatar-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: $text-white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .initials {
+      color: $primary-color;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+  }
+
+  /* INFO USUARIO Y DROPDOWN */
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    /* QUITAMOS overflow: hidden de aquí para que el dropdown se vea */
+    flex-grow: 1; 
+    min-width: 0; /* Truco flexbox para permitir text-overflow en hijos */
+
+    .user-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;      /* El recorte va AQUÍ */
+      text-overflow: ellipsis;
+      display: block;
+    }
+
+    /* Selector de Rol */
+    .role-switcher {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: $text-gray;
+      margin-top: 2px;
+      position: relative; /* Para posicionar el dropdown absoluto a esto */
+      
+      &.clickable {
+        cursor: pointer;
+        transition: color 0.2s;
+
+        &:hover {
+          color: $text-white;
+        }
+      }
+
+      .role-arrow {
+        font-size: 0.7rem;
+        transition: transform 0.2s;
+
+        &.rotated {
+          transform: rotate(180deg);
+        }
+      }
+
+      /* MENU DESPLEGABLE FLOTANTE */
+      .role-dropdown {
+        position: absolute;
+        top: 100%; /* Justo debajo del rol */
+        left: 0;
+        margin-top: 8px;
+        background-color: $primary-light;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 6px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        list-style: none;
+        padding: 5px;
+        min-width: 140px;
+        z-index: 100; /* Flotar encima de todo */
+
+        li {
+          padding: 8px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          color: $text-gray;
+          text-transform: capitalize;
+          transition: background 0.2s;
+          white-space: nowrap;
+
+          &:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: $text-white;
+          }
+
+          &.active {
+            color: #fff;
+            font-weight: bold;
+            background-color: rgba(255,255,255,0.05);
+          }
+        }
+      }
+    }
+  }
+}
+
+.separator {
+  height: 1px;
+  background-color: $separator-color;
+  margin: 0.5rem 0 1.5rem 0;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* --- 2. MENU (RECURSIVO) --- */
+.sidebar-menu {
+  flex-grow: 1;
+  overflow-y: auto; /* Scroll del menú */
+  z-index: 10;
+  
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.menu-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: $text-white;
+  margin-bottom: 0.2rem;
+  position: relative;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  &.active {
+    background-color: $primary-light; 
+    font-weight: 600;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 15%;
+      height: 70%;
+      width: 4px;
+      background-color: $active-bar-color; 
+      border-radius: 4px;
+    }
+  }
+
+  .content-area {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 10px;
+
+    i {
+      width: 20px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .label {
+      font-size: 0.95rem;
+      user-select: none;
+    }
+  }
+
+  .expand-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background 0.2s;
+    margin-left: 8px;
+
+    &:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+
+    .arrow {
+      font-size: 0.8rem;
+      transition: transform 0.3s ease;
+      color: $text-gray;
+
+      &.rotated {
+        transform: rotate(180deg);
+        color: $text-white;
+      }
+    }
+  }
+}
+
+.submenu-list {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+
+/* --- 3. FOOTER --- */
+.spacer {
+  flex-grow: 1;
+}
+
+.sidebar-footer {
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    color: $text-gray;
+    transition: all 0.2s;
+    gap: 10px;
+
+    i {
+      width: 24px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    &:hover {
+      color: $text-white;
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    &.logout {
+      margin-top: 0.5rem;
+      &:hover {
+        background-color: rgba(255, 0, 0, 0.1);
+        color: #ffcccc;
+      }
+    }
+  }
+}

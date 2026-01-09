@@ -1,0 +1,131 @@
+# Documentación del ORM Casero con QueryBuilder
+
+Este documento describe cómo utilizar tu ORM casero basado en `BaseModel` y `QueryBuilder` para realizar operaciones básicas y avanzadas con base de datos en PHP.
+
+## 🧱 Estructura Base
+
+Todos los modelos deben extender de `BaseModel` y definir la propiedad protegida `$table`, por ejemplo:
+
+```php
+class User extends BaseModel {
+    protected static string $table = 'users';
+}
+```
+
+## 📄 Métodos disponibles en BaseModel
+
+### ✅ `all()`
+Obtiene todos los registros de la tabla.
+```php
+User::all();
+```
+
+### ✅ `find($id)`
+Busca un registro por su ID.
+```php
+User::find(5);
+```
+
+### ✅ `findBy($column, $value)`
+Busca el primer registro que cumpla con la condición dada.
+```php
+User::findBy('email', 'ejemplo@correo.com');
+```
+
+### ✅ `create(array $data)`
+Inserta un nuevo registro.
+```php
+User::create([
+    'name' => 'Deyvid',
+    'email' => 'correo@ejemplo.com'
+]);
+```
+
+### ✅ `update($id, array $data)`
+Actualiza un registro por ID.
+```php
+User::update(1, ['name' => 'Nuevo Nombre']);
+```
+
+### ✅ `delete($id)`
+Elimina un registro por ID.
+```php
+User::delete(1);
+```
+
+## 🔍 Métodos del QueryBuilder
+
+Puedes encadenar métodos usando `User::query()` para hacer consultas más avanzadas.
+
+### 🔸 `select(...$columns)`
+Selecciona columnas específicas.
+```php
+User::query()->select('id', 'email')->get();
+```
+
+### 🔸 `join($table, $on, $type = 'INNER')`
+Agrega un `JOIN` (INNER por defecto).
+```php
+User::query()->join('roles', 'users.role_id = roles.id')->get();
+```
+
+### 🔸 `leftJoin($table, $on)` y `rightJoin($table, $on)`
+Agrega joins de tipo LEFT o RIGHT.
+```php
+User::query()->leftJoin('posts', 'users.id = posts.user_id')->get();
+```
+
+### 🔸 `where($column, $operator, $value)`
+Agrega condiciones WHERE.
+```php
+User::query()->where('email', '=', 'correo@ejemplo.com')->get();
+```
+
+### 🔸 `orWhere($column, $operator, $value)`
+Agrega condición OR.
+```php
+User::query()
+    ->where('name', '=', 'Ana')
+    ->orWhere('name', '=', 'Luis')
+    ->get();
+```
+
+### 🔸 `orderBy($column, $direction)`
+Ordena los resultados.
+```php
+User::query()->orderBy('created_at', 'DESC')->get();
+```
+
+### 🔸 `limit($cantidad)`
+Limita el número de resultados.
+```php
+User::query()->limit(5)->get();
+```
+
+### 🔸 `first()`
+Devuelve el primer resultado.
+```php
+User::query()->where('email', '=', 'x@x.com')->first();
+```
+
+### 🔸 `count()`
+Cuenta el número de registros.
+```php
+User::query()->where('estado', '=', 'activo')->count();
+```
+
+## 📌 Ejemplo completo
+
+```php
+$users = User::query()
+    ->select('users.id', 'users.name', 'roles.name AS role')
+    ->join('roles', 'users.role_id = roles.id')
+    ->where('roles.name', '=', 'admin')
+    ->orderBy('users.name')
+    ->limit(10)
+    ->get();
+```
+
+---
+
+📁 Recomendación: Guarda esta documentación en tu proyecto, por ejemplo en `docs/orm.txt`

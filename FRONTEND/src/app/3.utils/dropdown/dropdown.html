@@ -1,0 +1,92 @@
+<!-- <div class="custom-select-container" [class.disabled]="config.disabled">
+  
+  <label *ngIf="config.label" class="top-label">{{ config.label }}</label>
+
+  <div class="select-trigger" (click)="toggleDropdown()" [class.active]="isOpen">
+    
+    <span class="selected-text" [class.placeholder]="!selectedOption">
+      {{ selectedOption ? getOptionLabel(selectedOption) : (config.placeholder || 'Seleccionar') }}
+    </span>
+
+    <i class="fa-solid fa-chevron-down arrow" [class.rotated]="isOpen"></i>
+  </div>
+
+  <div class="select-options" *ngIf="isOpen">
+    
+    <div class="search-box" *ngIf="config.searchable">
+      <input type="text" 
+             placeholder="Buscar..." 
+             (input)="onSearchChange($event)"
+             (click)="$event.stopPropagation()"> <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+
+    <ul>
+      <li *ngFor="let option of filteredOptions" 
+          (click)="selectOption(option)"
+          [class.selected]="option === selectedOption">
+        {{ getOptionLabel(option) }}
+      </li>
+      
+      <li class="no-options" *ngIf="filteredOptions.length === 0">
+        {{ config.noOptionsMessage || 'No hay opciones' }}
+      </li>
+    </ul>
+  </div>
+
+</div> -->
+
+
+
+<div class="custom-select-container" [class.disabled]="config.disabled">
+  
+  <label *ngIf="config.label" class="top-label">{{ config.label }}</label>
+
+  <div class="select-trigger" (click)="toggleDropdown()" [class.active]="isOpen">
+    
+    <span class="selected-text" [class.placeholder]="!hasSelection">
+      {{ displayText }}
+    </span>
+
+    <div class="icons-area">
+      <i *ngIf="config.clearable && hasSelection" 
+         class="fa-solid fa-xmark clear-icon" 
+         (click)="clearSelection($event)"></i>
+
+      <i class="fa-solid fa-chevron-down arrow" [class.rotated]="isOpen"></i>
+    </div>
+  </div>
+
+  <div class="select-options" *ngIf="isOpen">
+    
+    <div class="search-box" *ngIf="config.searchable">
+      <input type="text" 
+             placeholder="Buscar..." 
+             (input)="onSearchChange($event)"
+             (click)="$event.stopPropagation()">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+
+    <ul>
+      <li *ngFor="let option of filteredOptions" 
+          (click)="selectOption(option)"
+          [class.selected]="isSelected(option)"
+          [class.multi-item]="config.multiSelect"> <ng-container *ngIf="config.multiSelect">
+           <div class="checkbox-wrapper">
+             <app-checkbox [checked]="isSelected(option)"></app-checkbox>
+           </div>
+           <span class="option-text">{{ getOptionLabel(option) }}</span>
+        </ng-container>
+
+        <ng-container *ngIf="!config.multiSelect">
+          {{ getOptionLabel(option) }}
+        </ng-container>
+
+      </li>
+      
+      <li class="no-options" *ngIf="filteredOptions.length === 0">
+        {{ config.noOptionsMessage || 'No hay opciones' }}
+      </li>
+    </ul>
+  </div>
+
+</div>
