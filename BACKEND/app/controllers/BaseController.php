@@ -11,7 +11,7 @@ class BaseController
 
     
     public function __construct() {
-        $this->request = new Request();
+        $this->request = Request::getInstance();
     }
     
     protected function json(mixed $data, int $code = 200): void

@@ -1,9 +1,10 @@
 <?php
 
 namespace Core;
+
 use Core\Database;
 use Throwable;
-use PDOException;
+use PDO;
 
 class Seeder
 {
@@ -17,17 +18,19 @@ class Seeder
             return;
         }
 
+        // Template mejorado: Sugerimos usar los Modelos en lugar de SQL manual
         $template = <<<PHP
-        <?php
+            <?php
 
-        class {$className}
-        {
-            public static function run(PDO \$pdo): void
+            class {$className}
             {
-                // \$pdo->exec("INSERT INTO ...");
+                public static function run(PDO \$pdo): void
+                {
+                    // Ejemplo con SQL: \$pdo->exec("INSERT INTO ...");
+                    // Ejemplo con Modelo: \App\Models\User::create([...]);
+                }
             }
-        }
-        PHP;
+            PHP;
 
         file_put_contents($filePath, $template);
         echo "✅ Seeder creado: {$filePath}\n";
@@ -44,36 +47,35 @@ class Seeder
         }
 
         foreach ($files as $file) {
-            require_once $file;
             $className = pathinfo($file, PATHINFO_FILENAME);
-
-            if (!class_exists($className)) {
-                echo "⚠️ Clase {$className} no encontrada.\n";
-                continue;
-            }
-
-            try {
-                $className::run($pdo);
-                echo "✅ Seeder ejecutado: {$className}\n";
-            } catch (Throwable $ex) {
-                echo "❌ Error en {$className}: " . $ex->getMessage() . "\n";
-                exit(1);
-            }
+            self::run($className); // Llamamos a run() para que use la tabla de control
         }
     }
 
     public static function run(string $seederName): void
     {
         $pdo = Database::pdo();
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-        // Crea la tabla de control si no existe
-        $pdo->exec("
-            CREATE TABLE IF NOT EXISTS seeders (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                seeder VARCHAR(255) UNIQUE,
-                run_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
+        // 1. Crear la tabla de control adaptada al motor
+        if ($driver === 'sqlite') {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS seeders (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    seeder VARCHAR(255) NOT NULL,
+                    run_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(seeder)
+                )
+            ");
+        } else {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS seeders (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    seeder VARCHAR(255) UNIQUE,
+                    run_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+        }
 
         // ¿Ya fue ejecutado?
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM seeders WHERE seeder = :s");
@@ -99,14 +101,22 @@ class Seeder
         }
 
         try {
+            // Desactivar llaves foráneas temporalmente para evitar errores al limpiar tablas
+            if ($driver === 'sqlite') $pdo->exec("PRAGMA foreign_keys = OFF;");
+            else $pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");
+
             $seederName::run($pdo);
+
+            // Reactivar llaves foráneas
+            if ($driver === 'sqlite') $pdo->exec("PRAGMA foreign_keys = ON;");
+            else $pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
 
             $insert = $pdo->prepare("INSERT INTO seeders (seeder) VALUES (:s)");
             $insert->execute(['s' => $seederName]);
 
             echo "✅ Seeder ejecutado: {$seederName}\n";
-        } catch (PDOException $e) {
-            echo "❌ Error ejecutando seeder: " . $e->getMessage() . "\n";
+        } catch (Throwable $e) {
+            echo "❌ Error ejecutando seeder {$seederName}: " . $e->getMessage() . "\n";
         }
     }
 }

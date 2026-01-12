@@ -12,8 +12,8 @@ require_once BASE_PATH . '/autoload.php';
  *-----------------------------------------------------------------*/
 
 use Core\Router;
-use Core\Request;
-use Core\Response;
+// use Core\Request;
+// use Core\Response;
 use App\Middlewares\CorsMiddleware;
 use Core\Env;
 Env::load(); // Cargar .env

@@ -60,4 +60,19 @@ abstract class BaseModel
         $stmt = Database::pdo()->prepare('DELETE FROM ' . static::$table . ' WHERE id = :id');
         return $stmt->execute([':id' => $id]);
     }
+
+    public static function truncate(): void
+    {
+        $pdo = Database::pdo();
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        
+        if ($driver === 'sqlite') {
+            $pdo->exec("DELETE FROM " . static::$table);
+            $pdo->exec("DELETE FROM sqlite_sequence WHERE name='" . static::$table . "'");
+        } else {
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+            $pdo->exec("TRUNCATE TABLE " . static::$table);
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+        }
+    }
 }

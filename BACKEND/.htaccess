@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. Evitar que la gente vea el listado de archivos (Directory Listing)
+    Options -Indexes
+
+    # 2. BLOQUEO DE SEGURIDAD
+    # Si intentan acceder a app, core, storage, database, scripts, .env, composer.json...
+    # Le devolvemos un error 403 Forbidden.
+    RewriteRule ^(app|core|storage|database|scripts|vendor|\.env|composer\.json|composer\.lock) - [F,L]
+
+    # 3. (Opcional pero recomendado) Redirigir todo el tráfico legítimo a la carpeta public
+    # Así no tienes que poner /public/ en la URL.
+    # Si la petición NO va a la carpeta public ya...
+    RewriteCond %{REQUEST_URI} !^/public/
+    # Redirígela a public
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

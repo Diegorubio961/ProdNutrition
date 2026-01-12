@@ -43,3 +43,6 @@ Thumbs.db
 
 
 **/keys/
+
+/BACKEND/storage/avatars/*
+!/BACKEND/storage/avatars/.gitkeep

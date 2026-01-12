@@ -1,9 +1,14 @@
 <?php
 
-class InsertTypesDocuments
+use App\Models\DocumentsTypeModel;
+
+class InsertDocumentsTypes
 {
-    public static function run(PDO $pdo): void
+    public static function run(): void
     {
+        // 1. Limpiamos datos viejos (opcional)
+        DocumentsTypeModel::truncate();
+
         $types = [
             ['type_name' => 'Cédula de Ciudadanía', 'short_name' => 'CC'],
             ['type_name' => 'Tarjeta de Identidad', 'short_name' => 'TI'],
@@ -11,16 +16,11 @@ class InsertTypesDocuments
             ['type_name' => 'Pasaporte', 'short_name' => 'PA'],
         ];
 
-        $stmt = $pdo->prepare("
-            INSERT INTO documents_type (type_name, short_name)
-            VALUES (:type_name, :short_name)
-        ");
-
+        // 2. Usamos el método CREATE de tu BaseModel
         foreach ($types as $type) {
-            $stmt->execute([
-                ':type_name' => $type['type_name'],
-                ':short_name' => $type['short_name']
-            ]);
+            DocumentsTypeModel::create($type);
         }
+        
+        echo "🌱 Semillas de Documentos plantadas usando el Modelo.\n";
     }
 }

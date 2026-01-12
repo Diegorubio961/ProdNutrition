@@ -38,6 +38,7 @@ class ControllerGenerator
             public function __construct()
             {
                 // Constructor del controlador
+                parent::__construct();
             }
 
             public function index()

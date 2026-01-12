@@ -5,64 +5,85 @@ namespace Core;
 class Router
 {
     private array $routes = [];
+    
+    // Propiedades para el manejo de estados de grupo
+    private string $groupPrefix = '';
+    private array $groupMiddleware = [];
 
-    /* ======================== METHOD REGISTRATION ======================== */
-    public function get(string $uri, callable|array $action): void
+    /* ======================== REGISTRO DE GRUPOS ======================== */
+
+    public function group(array $attributes, callable $callback): void
     {
-        $this->add('GET',  $uri, $action);
+        $previousPrefix = $this->groupPrefix;
+        $previousMiddleware = $this->groupMiddleware;
+
+        $this->groupPrefix .= '/' . trim($attributes['prefix'] ?? '', '/');
+        if (isset($attributes['middleware'])) {
+            $this->groupMiddleware = array_merge($this->groupMiddleware, (array)$attributes['middleware']);
+        }
+
+        $callback($this);
+
+        $this->groupPrefix = $previousPrefix;
+        $this->groupMiddleware = $previousMiddleware;
     }
-    public function post(string $uri, callable|array $action): void
-    {
-        $this->add('POST', $uri, $action);
-    }
+
+    /* ======================== REGISTRO DE MÉTODOS ======================== */
+
+    public function get(string $uri, callable|array $action): void { $this->add('GET', $uri, $action); }
+    public function post(string $uri, callable|array $action): void { $this->add('POST', $uri, $action); }
+    public function put(string $uri, callable|array $action): void { $this->add('PUT', $uri, $action); }
+    public function delete(string $uri, callable|array $action): void { $this->add('DELETE', $uri, $action); }
 
     private function add(string $method, string $uri, callable|array $action): void
     {
+        $fullUri = $this->groupPrefix . '/' . trim($uri, '/');
+        $fullUri = '/' . trim($fullUri, '/');
+
         if (is_array($action) && isset($action['action'])) {
-            $this->routes[$method][$uri] = $action; // acción + middleware
+            $routeData = $action;
         } else {
-            $this->routes[$method][$uri] = ['action' => $action]; // solo acción
+            $routeData = ['action' => $action];
         }
+
+        $routeMiddleware = $routeData['middleware'] ?? [];
+        $routeData['middleware'] = array_merge($this->groupMiddleware, (array)$routeMiddleware);
+
+        $this->routes[$method][$fullUri] = $routeData;
     }
 
-    /* ======================== DISPATCH ======================== */
+    /* ======================== DESPACHO (DISPATCH) ======================== */
+
     public function dispatch(string $method, string $uri): void
     {
-        $uri = parse_url($uri, PHP_URL_PATH);
+        // 1. INICIALIZAR REQUEST SINGLETON
+        // Al llamar a getInstance, capturamos headers, body y query una sola vez.
+        $request = \Core\Request::getInstance();
 
-        // Elimina el path base si es necesario (ej. /API/public)
+        $uri = parse_url($uri, PHP_URL_PATH);
         $scriptName = dirname($_SERVER['SCRIPT_NAME']);
-        if (str_starts_with($uri, $scriptName)) {
+        if ($scriptName !== '/' && str_starts_with($uri, $scriptName)) {
             $uri = substr($uri, strlen($scriptName));
         }
 
-        // Asegura que comience con "/"
-        $uri = '/' . ltrim($uri, '/');
-
+        $uri = '/' . trim($uri, '/');
         $route = $this->routes[$method][$uri] ?? null;
 
         if (!$route) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Not found']);
+            $this->errorResponse("Not found", 404);
             return;
         }
 
-        // Si es un array plano: ['Controlador', 'metodo'], se normaliza
-        if (isset($route[0]) && is_string($route[0])) {
-            $route = ['action' => $route];
-        }
-
-        // Ejecutar middlewares si existen
+        // 2. EJECUCIÓN DE MIDDLEWARES
         if (!empty($route['middleware'])) {
             foreach ($route['middleware'] as $middlewareDef) {
                 $className = $middlewareDef;
                 $params = [];
-                $method = 'handle'; // método por defecto
+                $handlerMethod = 'handle';
 
                 if (is_string($middlewareDef)) {
-                    // Ejemplo: App\Middlewares\PermissionMiddleware:admin,ventas@verificarPermisos
                     if (str_contains($middlewareDef, '@')) {
-                        [$beforeAt, $method] = explode('@', $middlewareDef);
+                        [$beforeAt, $handlerMethod] = explode('@', $middlewareDef);
                     } else {
                         $beforeAt = $middlewareDef;
                     }
@@ -76,40 +97,61 @@ class Router
                 }
 
                 if (!class_exists($className)) {
-                    http_response_code(500);
-                    echo json_encode(['error' => "Clase de middleware {$className} no válida"]);
+                    $this->errorResponse("Clase de middleware {$className} no válida", 500);
                     return;
                 }
 
-                $middleware = new $className(...$params);
+                // Los parámetros del constructor (si existen) se pasan aquí
+                $middlewareInstance = new $className(...$params);
 
-                if (!method_exists($middleware, $method)) {
-                    http_response_code(500);
-                    echo json_encode(['error' => "El método {$method} no existe en {$className}"]);
+                if (!method_exists($middlewareInstance, $handlerMethod)) {
+                    $this->errorResponse("Método {$handlerMethod} no existe en {$className}", 500);
                     return;
                 }
 
-                $middleware->$method();
+                /**
+                 * EJECUCIÓN DEL MIDDLEWARE
+                 * Internamente, el middleware hará: $request = \Core\Request::getInstance();
+                 * Cualquier $request->setAttribute() afectará a la misma instancia que recibirá el controlador.
+                 */
+                $middlewareInstance->$handlerMethod();
             }
         }
 
-        // Ejecutar controlador
-        [$controller, $methodName] = $route['action'];
+        // 3. EJECUCIÓN DEL CONTROLADOR
+        $action = $route['action'];
 
-        if (!class_exists($controller)) {
-            http_response_code(500);
-            echo json_encode(['error' => "Clase {$controller} no encontrada"]);
+        if (is_callable($action)) {
+            $action();
             return;
         }
 
+        [$controllerClass, $methodName] = $action;
 
-        $controllerInstance = new $controller();
+        if (!class_exists($controllerClass)) {
+            $this->errorResponse("Clase controlador {$controllerClass} no encontrada", 500);
+            return;
+        }
+
+        /**
+         * El controlador se instancia. 
+         * Si hereda de BaseController, su constructor hará: $this->request = Request::getInstance();
+         * obteniendo así el objeto enriquecido por los middlewares.
+         */
+        $controllerInstance = new $controllerClass();
 
         if (!method_exists($controllerInstance, $methodName)) {
-            echo json_encode(['error' => "Método {$methodName} no existe"]);
+            $this->errorResponse("El método {$methodName} no existe en el controlador", 500);
             return;
         }
 
         $controllerInstance->$methodName();
+    }
+
+    private function errorResponse(string $message, int $code = 400): void
+    {
+        http_response_code($code);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => $message]);
     }
 }
