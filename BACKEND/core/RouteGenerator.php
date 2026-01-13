@@ -8,7 +8,6 @@ class RouteGenerator
     {
         $directory = BASE_PATH . '/app/routes';
         
-        // "admin/users" -> folder: admin, file: users
         $parts = explode('/', $path);
         $fileName = array_pop($parts); 
         $subFolder = implode('/', $parts);
@@ -21,34 +20,36 @@ class RouteGenerator
         $cleanUri = ($uri === '/' || empty($uri)) ? '/' : '/' . ltrim($uri, '/');
         $controllerNamespace = str_replace('/', '\\', $controller);
 
-        // 1. CREAR O ACTUALIZAR EL ARCHIVO OBJETIVO (users.php)
+        // 1. CREAR O ACTUALIZAR EL ARCHIVO OBJETIVO
         if (!file_exists($filePath)) {
             $prefix = "/{$fileName}";
             $content = "<?php\n\n/** @var \\Core\\Router \$router */\n\n";
             $content .= "\$router->group(['prefix' => '{$prefix}', 'middleware' => []], function(\$router) {\n";
+            // CORRECCIÓN: Usar $method (la acción del controlador) y $httpMethod (get/post) por separado
             $content .= "    \$router->{$httpMethod}('{$cleanUri}', [\n        'action' => ['App\\Controllers\\{$controllerNamespace}', '{$method}']\n    ]);\n";
             $content .= "});\n";
             file_put_contents($filePath, $content);
             echo "✅ Archivo creado: app/routes/{$path}.php\n";
         } else {
-            self::appendRoute($filePath, $httpMethod, $cleanUri, $controllerNamespace);
+            // CORRECCIÓN: Pasar explícitamente el nombre del método del controlador
+            self::appendRoute($filePath, $httpMethod, $cleanUri, $controllerNamespace, $method);
             echo "✅ Ruta anexada a: {$path}.php\n";
         }
 
-        // 2. AUTO-VÍNCULO: Si está en una carpeta, lo vinculamos al padre
         if ($subFolder) {
             self::linkToParent($directory, $subFolder, $fileName);
         }
     }
 
-    private static function appendRoute($path, $method, $uri, $ns) {
+    // CORRECCIÓN: Se añade el parámetro $ctrlMethod para no confundirlo con el $httpMethod
+    private static function appendRoute($path, $httpMethod, $uri, $ns, $ctrlMethod) {
         $lines = file($path);
-        $routeLine = "    \$router->{$method}('{$uri}', [\n        'action' => ['App\\Controllers\\{$ns}', '{$method}']\n    ]);\n";
-        $added = false;
+        $routeLine = "    \$router->{$httpMethod}('{$uri}', [\n        'action' => ['App\\Controllers\\{$ns}', '{$ctrlMethod}']\n    ]);\n";
+        
         for ($i = count($lines) - 1; $i >= 0; $i--) {
             if (trim($lines[$i]) === '});') {
                 array_splice($lines, $i, 0, $routeLine);
-                $added = true; break;
+                break;
             }
         }
         file_put_contents($path, implode('', $lines));
@@ -61,10 +62,8 @@ class RouteGenerator
         $parentContent = file_get_contents($parentPath);
         $requireLine = "    require_once __DIR__ . '/{$parentName}/{$childName}.php';";
 
-        // Si ya está vinculado, no hacer nada
         if (str_contains($parentContent, "/{$childName}.php'")) return;
 
-        // Insertar el require_once al inicio del grupo del padre
         $pattern = "/function\s*\(\s*\\\$router\s*\)\s*\{/";
         $parentContent = preg_replace($pattern, "$0\n{$requireLine}", $parentContent, 1);
         

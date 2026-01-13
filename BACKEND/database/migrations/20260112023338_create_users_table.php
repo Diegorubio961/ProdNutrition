@@ -22,8 +22,10 @@ class CreateUsersTable
 
             // Relaciones
             $table->foreignId('document_type_id');
-            $table->foreignId('role_id');
+            
             $table->foreignId('plan_id');
+
+            $table->boolean('email_verified', false);
 
             // Fechas específicas
             $table->timestamp('date_active_plan');
@@ -37,10 +39,6 @@ class CreateUsersTable
             $table->foreign('document_type_id')
                   ->references('id')->on('documents_type')
                   ->onDelete('RESTRICT');
-
-            $table->foreign('role_id')
-                  ->references('id')->on('roles')
-                  ->onDelete('SET NULL');
 
             $table->foreign('plan_id')
                   ->references('id')->on('plans')

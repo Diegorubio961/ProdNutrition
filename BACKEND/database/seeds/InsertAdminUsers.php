@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\UsersModel;
+use App\Models\RolesModel;
+use App\Models\UserInRolModel;
 
 class InsertAdminUsers
 {
@@ -19,7 +21,6 @@ class InsertAdminUsers
                 'id_card'          => '1234567890',
                 'email'            => 'diegorubiovarela967@gmail.com',
                 'password'         => $general_password,
-                'role_id'          => 1
             ],
             [
                 'name'             => 'Andres Mnatilla',
@@ -28,7 +29,6 @@ class InsertAdminUsers
                 'id_card'          => '1234567891',
                 'email'            => 'andresmantilla0506@outlook.com',
                 'password'         => $general_password,
-                'role_id'          => 1
             ],
             [
                 'name'             => 'Deyvid Bedoya',
@@ -37,13 +37,25 @@ class InsertAdminUsers
                 'id_card'          => '1234567892',
                 'email'            => 'deyvidbedoya@gmail.com',
                 'password'         => $general_password,
-                'role_id'          => 1
             ]
         ];
 
         // 2. Insertar cada usuario usando el modelo
         foreach ($dev_users as $user) {
             UsersModel::create($user);
+        }
+
+        // 3. obtener la lista de roles
+        $roles = RolesModel::query()->whereIn('role_name', ['admin', 'nutritionist'])->get();
+
+        // 4. Asignar roles a los usuarios creados
+        foreach (UsersModel::all() as $user) {
+            foreach ($roles as $role) {
+                UserInRolModel::create([
+                    'user_id' => $user['id'],
+                    'rol_id'  => $role['id']
+                ]);
+            }
         }
 
         echo "🌱 Usuarios administradores creados con éxito.\n";
