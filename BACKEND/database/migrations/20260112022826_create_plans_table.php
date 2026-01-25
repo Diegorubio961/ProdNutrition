@@ -15,6 +15,8 @@ class CreatePlansTable
             
             $table->string('name', 255);
             $table->text('description'); // Ahora soportado
+            $table->integer('customer_count');
+            $table->string('details');
             $table->decimal('price', 10, 2); // Ahora soportado
             $table->integer('duration_days');
             
