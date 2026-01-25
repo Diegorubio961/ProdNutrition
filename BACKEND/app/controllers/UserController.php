@@ -3,8 +3,8 @@
 namespace App\Controllers;
 use App\Controllers\BaseController;
 use Core\Request;
-use utils\validate_keys;
 use App\Models\UsersModel;
+use App\Models\UserInRolModel;
 
 class UserController extends BaseController
 {
@@ -23,7 +23,7 @@ class UserController extends BaseController
 
     public function createNutritionist()
     {
-        $request = \Core\Request::getInstance();
+        $request = Request::getInstance();
         $payload = $request->all();
 
         $schema = [
@@ -75,8 +75,21 @@ class UserController extends BaseController
             'email_verified' => 0
         ]);
 
-        $this->json(['ok' => true, 'user' => $newUser], 201);
+        $userId = $newUser['id'] ?? null;
+
+        if (!$userId) {
+            $this->json(['error' => 'User created but id not returned'], 500);
+            return;
+        }
+
+        $userRol = UserInRolModel::create([
+            'user_id' => $userId,
+            'rol_id' => 1
+        ]);
+
+        $this->json(['ok' => true, 'user' => $newUser, 'role' => $userRol], 201);
     }
+
 
     public function readUsers()
     {
@@ -90,7 +103,7 @@ class UserController extends BaseController
 
     public function updateUser()
     {
-        $request = \Core\Request::getInstance();
+        $request = Request::getInstance();
         $payload = $request->all();
 
         if (!isset($payload['id_card']) || !is_string($payload['id_card'])) {
@@ -199,7 +212,7 @@ class UserController extends BaseController
 
     public function deleteUser()
     {
-        $request = \Core\Request::getInstance();
+        $request = Request::getInstance();
         $payload = $request->all();
 
         $schema = [
