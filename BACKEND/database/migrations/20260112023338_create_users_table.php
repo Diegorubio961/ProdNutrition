@@ -13,7 +13,8 @@ class CreateUsersTable
         Schema::create('users', function (Blueprint $table) {
             $table->id(); // BIGINT AUTO_INCREMENT
             
-            $table->string('name', 100);
+            $table->string('names', 100);
+            $table->string('surnames', 100);
             $table->string('phone', 10);
             $table->string('id_card', 20, true); // True activa el UNIQUE
             $table->string('profile_image', 255, false, true); // Último true es nullable

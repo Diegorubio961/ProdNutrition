@@ -15,7 +15,8 @@ class InsertAdminUsers
 
         $dev_users = [
             [
-                'name'             => 'Diego Rubio',
+                'names'             => 'Diego',
+                'surnames'          => 'Rubio',
                 'phone'            => '3219874491',
                 'document_type_id' => 1,
                 'id_card'          => '1234567890',
@@ -23,7 +24,8 @@ class InsertAdminUsers
                 'password'         => $general_password,
             ],
             [
-                'name'             => 'Andres Mnatilla',
+                'names'             => 'Andres',
+                'surnames'          => 'Mantilla',
                 'phone'            => '3232884772',
                 'document_type_id' => 1,
                 'id_card'          => '1234567891',
@@ -31,7 +33,8 @@ class InsertAdminUsers
                 'password'         => $general_password,
             ],
             [
-                'name'             => 'Deyvid Bedoya',
+                'names'             => 'Deyvid',
+                'surnames'          => 'Bedoya',
                 'phone'            => '3219318780',
                 'document_type_id' => 1,
                 'id_card'          => '1234567892',
