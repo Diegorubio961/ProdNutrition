@@ -22,6 +22,7 @@ class InsertAdminUsers
                 'id_card'          => '1234567890',
                 'email'            => 'diegorubiovarela967@gmail.com',
                 'password'         => $general_password,
+                'state'           => 'Activo'
             ],
             [
                 'names'             => 'Andres',
@@ -31,6 +32,7 @@ class InsertAdminUsers
                 'id_card'          => '1234567891',
                 'email'            => 'andresmantilla0506@outlook.com',
                 'password'         => $general_password,
+                'state'           => 'Activo'
             ],
             [
                 'names'             => 'Deyvid',
@@ -40,6 +42,7 @@ class InsertAdminUsers
                 'id_card'          => '1234567892',
                 'email'            => 'deyvidbedoya@gmail.com',
                 'password'         => $general_password,
+                'state'           => 'Activo'
             ]
         ];
 

@@ -20,6 +20,7 @@ class CreateUsersTable
             $table->string('profile_image', 255, false, true); // Último true es nullable
             $table->string('email', 100, true); // Email único
             $table->string('password', 255);
+            $table->string('state', 50);
 
             // Relaciones
             $table->foreignId('document_type_id');
