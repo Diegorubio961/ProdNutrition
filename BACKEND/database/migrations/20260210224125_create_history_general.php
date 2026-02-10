@@ -3,7 +3,7 @@
 use Core\Schema;
 use Core\Blueprint;
 
-class CreateHistoryGeneralTable
+class CreateHistoryGeneral
 {
     public function up(PDO $pdo): void
     {
@@ -14,10 +14,10 @@ class CreateHistoryGeneralTable
 
             $table->timestamp('birth_date');
             $table->timestamp('care_date');
-            $table->integer('social_stratum');
+            $table->decimal('social_stratum');
             $table->string('health_provider');
-            $table->string('education_level');
-            $table->string('cohabiting_people');
+            $table->decimal('education_level_id');
+            $table->decimal('cohabiting_people');
             $table->string('occupation');
 
             $table->timestamps();
