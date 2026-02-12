@@ -13,10 +13,11 @@ class CreateHistoryReminder
             $table->foreignId('patient_id');
 
             $table->string('meal_type');
-            $table->timestamp('time');
-            $table->string('place');
+            $table->timestamp('time_reminder');
+            $table->string('meal_place');
             $table->string('preparation');
-            $table->decimal('quantity');
+            $table->decimal('meal_quantity');
+            $table->string('meal_quantity_unit');
 
             $table->timestamps();
             $table->softDeletes();

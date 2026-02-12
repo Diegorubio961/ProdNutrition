@@ -12,9 +12,9 @@ class CreateHistoryLaboratoryTests
 
             $table->foreignId('patient_id');
 
-            $table->string('indicator');
+            $table->string('indicator_laboratory');
             $table->decimal('value');
-            $table->string('unit');
+            $table->string('unit_laboratory');
             $table->string('interpretation');
 
             $table->timestamps();

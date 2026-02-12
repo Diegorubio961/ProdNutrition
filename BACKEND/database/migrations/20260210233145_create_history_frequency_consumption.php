@@ -13,8 +13,8 @@ class CreateHistoryFrequencyConsumption
             $table->foreignId('patient_id');
             $table->foreignId('unit_frequency_id');
 
-            $table->string('food');
-            $table->decimal('frequency');
+            $table->string('food_name');
+            $table->decimal('consumption_frequency');
 
             $table->timestamps();
             $table->softDeletes();

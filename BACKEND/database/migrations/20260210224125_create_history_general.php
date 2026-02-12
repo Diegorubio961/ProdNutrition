@@ -14,10 +14,10 @@ class CreateHistoryGeneral
 
             $table->timestamp('birth_date');
             $table->timestamp('care_date');
-            $table->decimal('social_stratum');
+            $table->integer('social_stratum');
             $table->string('health_provider');
-            $table->decimal('education_level_id');
-            $table->decimal('cohabiting_people');
+            $table->string('education_level');
+            $table->integer('cohabiting_people');
             $table->string('occupation');
 
             $table->timestamps();

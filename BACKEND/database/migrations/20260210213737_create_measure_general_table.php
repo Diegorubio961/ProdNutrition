@@ -14,7 +14,6 @@ class CreateHistoryGeneralTable
 
             $table->timestamp('birth_date');
             $table->timestamp('care_date');
-            $table->integer('social_stratum');
             $table->string('health_provider');
             $table->string('education_level');
             $table->string('cohabiting_people');

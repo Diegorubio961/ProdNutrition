@@ -12,10 +12,10 @@ class CreateHistoryMedicationsSupplements
 
             $table->foreignId('patient_id');
 
-            $table->string('indicator');
+            $table->string('indicator_supplement');
             $table->string('objective');
             $table->decimal('dose');
-            $table->string('unit');
+            $table->string('unit_medication');
             $table->decimal('frequency_hours');
             $table->string('prescribed');
 

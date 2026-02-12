@@ -13,7 +13,7 @@ class CreateHistoryUnitFrequency
         Schema::create('history_unit_frequency', function (Blueprint $table) {
             $table->id();
             
-            $table->string('unit');
+            $table->string('unit_frequency');
 
             $table->timestamps();
             $table->softDeletes();
