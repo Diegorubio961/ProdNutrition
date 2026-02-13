@@ -12,16 +12,16 @@ class CreateHistoryInfoHealth
 
             $table->foreignId('patient_id');
 
-            $table->string('consult_reason');
-            $table->string('previous_treatment');
-            $table->string('family_history');
-            $table->string('personal_history');
-            $table->string('pubertal_maturation');
+            $table->string('consult_reason', 255, false, true);
+            $table->string('previous_treatment', 255, false, true);
+            $table->string('family_history', 255, false, true);
+            $table->string('personal_history', 255, false, true);
+            $table->string('pubertal_maturation', 255, false, true);
             $table->decimal('menarche');
             $table->decimal('regular_menstruation');
-            $table->string('additional_pregnancy_data');
-            $table->string('surgeries');
-            $table->string('gastrointestinal_symptoms');
+            $table->string('additional_pregnancy_data', 255, false, true);
+            $table->string('surgeries', 255, false, true);
+            $table->string('gastrointestinal_symptoms', 255, false, true);
 
             $table->timestamps();
             $table->softDeletes();

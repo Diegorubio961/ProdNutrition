@@ -33,6 +33,7 @@ class HistoryController extends BaseController
         $this->tables = [
             'history_general' => [
                 'model' => HistoryGeneralModel::class,
+                'mode' => 'single',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -48,6 +49,7 @@ class HistoryController extends BaseController
             ],
             'history_info_health' => [
                 'model' => HistoryInfoHealthModel::class,
+                'mode' => 'single',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -66,6 +68,7 @@ class HistoryController extends BaseController
             ],
             'history_psychosocial_conditions' => [
                 'model' => HistoryPsychosocialConditionsModel::class,
+                'mode' => 'single',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -77,6 +80,7 @@ class HistoryController extends BaseController
             ],
             'history_clinical_signs' => [
                 'model' => HistoryClinicalSignsModel::class,
+                'mode' => 'multiple',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -87,6 +91,7 @@ class HistoryController extends BaseController
             ],
             'history_laboratory_tests' => [
                 'model' => HistoryLaboratoryTestsModel::class,
+                'mode' => 'multiple',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -99,6 +104,7 @@ class HistoryController extends BaseController
             ],
             'history_medications_supplements' => [
                 'model' => HistoryMedicationsSupplementsModel::class,
+                'mode' => 'multiple',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -113,6 +119,7 @@ class HistoryController extends BaseController
             ],
             'history_physical_activity' => [
                 'model' => HistoryPhysicalActivityModel::class,
+                'mode' => 'single',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -125,6 +132,7 @@ class HistoryController extends BaseController
             ],
             'history_feeding' => [
                 'model' => HistoryFeedingModel::class,
+                'mode' => 'single',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -138,6 +146,7 @@ class HistoryController extends BaseController
             ],
             'history_reminder' => [
                 'model' => HistoryReminderModel::class,
+                'mode' => 'multiple',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -152,6 +161,7 @@ class HistoryController extends BaseController
             ],
             'history_frequency_consumption' => [
                 'model' => HistoryFrequencyConsumptionModel::class,
+                'mode' => 'multiple',
                 'schema' => [
                     'table' => 'string',
                     'patient_id' => 'int',
@@ -163,17 +173,6 @@ class HistoryController extends BaseController
             ]
         ];
     }
-
-    /**
-     * CREATE genérico:
-     * - Recibe: table + patient_id + campos del step
-     * - Valida:
-     *   1) table exista en configuración
-     *   2) llaves mínimas requeridas y tipos (validate_keys)
-     *   3) patient_id exista en users (evita error FK)
-     *   4) tipos de opcionales presentes
-     * - Inserta usando el modelo asociado a la tabla
-     */
 
     public function create()
     {
@@ -199,6 +198,16 @@ class HistoryController extends BaseController
         $cfg = $this->tables[$table];
         $schema = $cfg['schema'];
         $required = $cfg['required'];
+        $mode = $cfg['mode'] ?? 'multiple';
+
+        // 4.1) Bloquear creación en tablas single
+        if ($mode === 'single') {
+            $this->json([
+                'error' => 'Operacion_no_permitida',
+                'details' => ['table' => 'no_se_permite_crear_en_tablas_single']
+            ], 403);
+            return;
+        }
 
         // 5) Construir un schema SOLO con los campos requeridos para validarlos con validate_keys
         $requiredSchema = [];
@@ -218,10 +227,7 @@ class HistoryController extends BaseController
         //    Esto evita que MySQL lance el error FK (1452)
         $patientId = $payload['patient_id'];
 
-        $user = UsersModel::query()
-            ->where('id', '=', $patientId)
-            ->where('deleted_at', 'IS', null)
-            ->first();
+        $user = UsersModel::find($patientId);
 
         if (!$user) {
             $this->json([
@@ -271,11 +277,415 @@ class HistoryController extends BaseController
             $data[$field] = $payload[$field];
         }
 
+        // 9.1) Debe venir al menos un campo para crear (aparte de patient_id)
+        $dataWithoutPatient = $data;
+        unset($dataWithoutPatient['patient_id']);
+
+        if (count($dataWithoutPatient) === 0) {
+            $this->json([
+                'error' => 'Validación fallida',
+                'details' => ['create' => 'debe_enviar_al_menos_un_campo_para_crear']
+            ], 422);
+            return;
+        }
+
         // 10) Insertar usando el modelo asociado a la tabla seleccionada
         $modelClass = $cfg['model'];
         $created = $modelClass::create($data);
 
         // 11) Responder OK con el registro creado
-        $this->json(['ok' => true, 'tabla' => $table, 'registro_creado' => $created], 201);
+        $this->json(['message' => 'Registro creado correctamente'], 201);
+    }
+
+    public function update()
+    {
+        $request = \Core\Request::getInstance();
+        $payload = $request->all();
+
+        if (!isset($payload['table']) || !is_string($payload['table'])) {
+            $this->json(['error' => 'Validación fallida', 'details' => ['table' => 'faltante_o_tipo_string']], 422);
+            return;
+        }
+
+        $table = $payload['table'];
+
+        if (!array_key_exists($table, $this->tables)) {
+            $this->json(['error' => 'Validación fallida', 'details' => ['table' => 'tabla_invalida']], 422);
+            return;
+        }
+
+        $cfg = $this->tables[$table];
+        $schema = $cfg['schema'];
+        $mode = $cfg['mode'] ?? 'multiple';
+        $modelClass = $cfg['model'];
+
+        $requiredSchema = [
+            'table' => 'string',
+            'patient_id' => 'int'
+        ];
+
+        if ($mode === 'multiple') {
+            $requiredSchema['id'] = 'int';
+        }
+
+        $result = \Utils\validate_keys::validateTypes($payload, $requiredSchema);
+
+        if (!$result['ok']) {
+            $this->json(['error' => 'Validación fallida', 'details' => $result['errors']], 422);
+            return;
+        }
+
+        $patientId = $payload['patient_id'];
+        $id = $payload['id'] ?? null;
+
+        $user = UsersModel::find($patientId);
+
+        if (!$user) {
+            $this->json([
+                'error' => 'paciente_no_encontrado',
+                'details' => ['patient_id' => 'no_existe_en_usuarios']
+            ], 404);
+            return;
+        }
+
+        if (!method_exists($modelClass, 'query')) {
+            $this->json([
+                'error' => 'configuracion_invalida',
+                'details' => ['model' => 'metodo_query_no_disponible']
+            ], 500);
+            return;
+        }
+
+        if (!method_exists($modelClass, 'update')) {
+            $this->json([
+                'error' => 'configuracion_invalida',
+                'details' => ['model' => 'metodo_update_no_disponible']
+            ], 500);
+            return;
+        }
+
+        // Buscar registro
+        if ($mode === 'single') {
+            $record = $modelClass::query()
+                ->where('patient_id', '=', $patientId)
+                ->first();
+        } else {
+            $record = $modelClass::query()
+                ->where('id', '=', $id)
+                ->first();
+        }
+
+        if (!$record || !empty($record['deleted_at'])) {
+            $this->json([
+                'error' => 'registro_no_encontrado',
+                'details' => $mode === 'single'
+                    ? ['patient_id' => 'no_existe_registro_en_tabla_single']
+                    : ['id' => 'no_existe_en_tabla']
+            ], 404);
+            return;
+        }
+
+        // Validar pertenencia
+        if (array_key_exists('patient_id', $schema)) {
+            $currentPatientId = $record['patient_id'] ?? null;
+            if ($currentPatientId !== null && (int)$currentPatientId !== (int)$patientId) {
+                $this->json([
+                    'error' => 'registro_no_corresponde_al_paciente',
+                    'details' => ['patient_id' => 'no_coincide_con_el_registro']
+                ], 403);
+                return;
+            }
+        }
+
+        // Schema actualizable
+        $updatableSchema = $schema;
+        unset($updatableSchema['table']);
+        unset($updatableSchema['patient_id']);
+        unset($updatableSchema['id']);
+
+        $blocked = ['created_at', 'updated_at', 'deleted_at'];
+        foreach ($blocked as $b) {
+            if (array_key_exists($b, $updatableSchema)) unset($updatableSchema[$b]);
+        }
+
+        // Validar campos no permitidos
+        $unknownFields = [];
+        foreach ($payload as $k => $v) {
+            if (in_array($k, ['table', 'patient_id', 'id'], true)) continue;
+            if (!array_key_exists($k, $updatableSchema)) $unknownFields[] = $k;
+        }
+
+        if ($unknownFields) {
+            $this->json([
+                'error' => 'Validación fallida',
+                'details' => ['campos_no_permitidos' => $unknownFields]
+            ], 422);
+            return;
+        }
+
+        // Debe venir al menos 1 campo actualizable
+        $providedFields = [];
+        foreach (array_keys($updatableSchema) as $field) {
+            if (!array_key_exists($field, $payload)) continue;
+            if ($payload[$field] === null) continue;
+            $providedFields[] = $field;
+        }
+
+        if (!$providedFields) {
+            $this->json([
+                'error' => 'Validación fallida',
+                'details' => ['update' => 'debe_enviar_al_menos_un_campo_actualizable']
+            ], 422);
+            return;
+        }
+
+        // Validar tipos solo de lo enviado
+        $typeErrors = [];
+        foreach ($providedFields as $key) {
+            $type = $updatableSchema[$key];
+
+            $ok = match ($type) {
+                'string' => is_string($payload[$key]),
+                'int' => is_int($payload[$key]),
+                'bool' => is_bool($payload[$key]),
+                'decimal' => is_int($payload[$key]) || is_float($payload[$key]) || (is_string($payload[$key]) && is_numeric($payload[$key])),
+                default => false
+            };
+
+            if (!$ok) $typeErrors[$key] = "tipo_{$type}_invalido";
+        }
+
+        if ($typeErrors) {
+            $this->json(['error' => 'Validación fallida', 'details' => $typeErrors], 422);
+            return;
+        }
+
+        // Calcular updates por cambios reales
+        $updates = [];
+        foreach ($providedFields as $field) {
+            $newVal = $payload[$field];
+            $oldVal = $record[$field] ?? null;
+
+            $schemaType = $updatableSchema[$field] ?? null;
+
+            if ($schemaType === 'decimal' && is_string($newVal) && is_numeric($newVal)) $newVal = (float)$newVal;
+            if ($schemaType === 'decimal' && is_string($oldVal) && is_numeric($oldVal)) $oldVal = (float)$oldVal;
+
+            if ($newVal !== $oldVal) {
+                $updates[$field] = $payload[$field];
+            }
+        }
+
+        if (empty($updates)) {
+            $this->json([
+                'mensaje' => 'No se detectaron cambios para actualizar'
+            ], 200);
+            return;
+        }
+
+        $recordId = $record['id'];
+        $modelClass::update($recordId, $updates);
+
+        $updatedRecord = $modelClass::query()
+            ->where('id', '=', $recordId)
+            ->first();
+
+        $this->json([
+            'message' => 'Registro actualizado correctamente'
+        ], 200);
+    }
+
+    public function delete()
+    {
+        $request = \Core\Request::getInstance();
+        $payload = $request->all();
+
+        // 1) Validación básica: table
+        if (!isset($payload['table']) || !is_string($payload['table'])) {
+            $this->json(['error' => 'Validación fallida', 'details' => ['table' => 'faltante_o_tipo_string']], 422);
+            return;
+        }
+
+        $table = $payload['table'];
+
+        if (!array_key_exists($table, $this->tables)) {
+            $this->json(['error' => 'Validación fallida', 'details' => ['table' => 'tabla_invalida']], 422);
+            return;
+        }
+
+        // 2) Config
+        $cfg = $this->tables[$table];
+        $mode = $cfg['mode'] ?? 'multiple';
+        $modelClass = $cfg['model'];
+        $schema = $cfg['schema'];
+
+        // 3) Solo se permite eliminar en tablas multiple
+        if ($mode !== 'multiple') {
+            $this->json([
+                'error' => 'Operacion_no_permitida',
+                'details' => ['table' => 'no_se_permite_eliminar_en_tablas_single']
+            ], 403);
+            return;
+        }
+
+        // 4) Requeridos mínimos: table, patient_id, id
+        $requiredSchema = [
+            'table' => 'string',
+            'patient_id' => 'int',
+            'id' => 'int'
+        ];
+
+        $result = \Utils\validate_keys::validateTypes($payload, $requiredSchema);
+
+        if (!$result['ok']) {
+            $this->json(['error' => 'Validación fallida', 'details' => $result['errors']], 422);
+            return;
+        }
+
+        $patientId = $payload['patient_id'];
+        $id = $payload['id'];
+
+        // 5) Validar patient_id exista
+        $user = UsersModel::find($patientId);
+
+        if (!$user) {
+            $this->json([
+                'error' => 'paciente_no_encontrado',
+                'details' => ['patient_id' => 'no_existe_en_usuarios']
+            ], 404);
+            return;
+        }
+
+        // 6) Validar soporte del modelo
+        if (!method_exists($modelClass, 'query')) {
+            $this->json([
+                'error' => 'configuracion_invalida',
+                'details' => ['model' => 'metodo_query_no_disponible']
+            ], 500);
+            return;
+        }
+
+        // 7) Buscar registro por id
+        $record = $modelClass::query()
+            ->where('id', '=', $id)
+            ->first();
+
+        if (!$record || !empty($record['deleted_at'])) {
+            $this->json([
+                'error' => 'registro_no_encontrado',
+                'details' => ['id' => 'no_existe_en_tabla']
+            ], 404);
+            return;
+        }
+
+        // 8) Validar pertenencia al paciente (si aplica)
+        if (array_key_exists('patient_id', $schema)) {
+            $currentPatientId = $record['patient_id'] ?? null;
+
+            if ($currentPatientId !== null && (int)$currentPatientId !== (int)$patientId) {
+                $this->json([
+                    'error' => 'registro_no_corresponde_al_paciente',
+                    'details' => ['patient_id' => 'no_coincide_con_el_registro']
+                ], 403);
+                return;
+            }
+        }
+
+        // 9) Soft delete preferido (si existe deleted_at). Si no, delete físico.
+        $deleted = null;
+
+        if (array_key_exists('deleted_at', $record)) {
+            if (!method_exists($modelClass, 'update')) {
+                $this->json([
+                    'error' => 'configuracion_invalida',
+                    'details' => ['model' => 'metodo_update_no_disponible_para_soft_delete']
+                ], 500);
+                return;
+            }
+
+            $modelClass::update($record['id'], ['deleted_at' => date('Y-m-d H:i:s')]);
+            $deleted = true;
+        } else {
+            // Fallback: delete físico por query builder si existe
+            if (method_exists($modelClass::query(), 'delete')) {
+                $deleted = $modelClass::query()
+                    ->where('id', '=', $record['id'])
+                    ->delete();
+            } else {
+                $this->json([
+                    'error' => 'configuracion_invalida',
+                    'details' => ['model' => 'metodo_delete_no_disponible']
+                ], 500);
+                return;
+            }
+        }
+
+        // 10) Respuesta OK
+        $this->json(['message' => 'El registro se eliminó correctamente'], 200);
+    }
+
+    public function read()
+    {
+        $request = \Core\Request::getInstance();
+        $payload = $request->all();
+
+        if (!isset($payload['patient_id']) || !is_int($payload['patient_id'])) {
+            $this->json(['message' => 'Validación fallida'], 422);
+            return;
+        }
+
+        $patientId = $payload['patient_id'];
+
+        $user = UsersModel::find($patientId);
+
+        if (!$user) {
+            $this->json(['message' => 'Paciente no encontrado'], 404);
+            return;
+        }
+
+        $stripDates = function ($row) {
+            if (!is_array($row)) return $row;
+            unset($row['created_at'], $row['updated_at'], $row['deleted_at']);
+            return $row;
+        };
+
+        $stripDatesMany = function ($rows) use ($stripDates) {
+            if (!is_array($rows)) return [];
+            $clean = [];
+            foreach ($rows as $r) {
+                $clean[] = $stripDates($r);
+            }
+            return $clean;
+        };
+
+        $result = [];
+
+        foreach ($this->tables as $tableName => $cfg) {
+            $modelClass = $cfg['model'];
+            $mode = $cfg['mode'] ?? 'multiple';
+
+            if (!method_exists($modelClass, 'query')) {
+                $result[$tableName] = $mode === 'single' ? (object)[] : [];
+                continue;
+            }
+
+            if ($mode === 'single') {
+                $row = $modelClass::query()
+                    ->where('patient_id', '=', $patientId)
+                    ->where('deleted_at', 'IS', null)
+                    ->first();
+
+                $result[$tableName] = $row ? $stripDates($row) : (object)[];
+            } else {
+                $rows = $modelClass::query()
+                    ->where('patient_id', '=', $patientId)
+                    ->where('deleted_at', 'IS', null)
+                    ->get();
+
+                $result[$tableName] = $stripDatesMany($rows);
+            }
+        }
+
+        $this->json($result, 200);
     }
 }

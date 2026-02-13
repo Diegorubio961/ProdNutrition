@@ -20,4 +20,8 @@ class BaseController
         header('Content-Type: application/json');
         echo json_encode($data);
     }
+
+    protected function print($obj){
+        print_r($this->json($obj));
+    }
 }

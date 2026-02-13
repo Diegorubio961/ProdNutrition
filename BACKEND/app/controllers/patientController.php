@@ -1,12 +1,18 @@
 <?php
 
 namespace App\Controllers;
+
 use App\Controllers\BaseController;
-use Core\Request;
 use App\Models\UsersModel;
 use App\Models\UserInRolModel;
+use App\Models\HistoryGeneralModel;
+use App\Models\HistoryInfoHealthModel;
+use App\Models\HistoryPsychosocialConditionsModel;
+use App\Models\HistoryFeedingModel;
+use App\Models\HistoryPhysicalActivityModel;
+use Core\Request;
 
-class UserController extends BaseController
+class patientController extends BaseController
 {
     public function __construct()
     {
@@ -14,14 +20,48 @@ class UserController extends BaseController
         parent::__construct();
     }
 
-    public function index()
+    private function initClinicalHistorySingleTables(int $patientId): array
     {
-        $this->json(['message' => 'User index method called']);
+        $singleTables = [
+            HistoryGeneralModel::class,
+            HistoryInfoHealthModel::class,
+            HistoryPsychosocialConditionsModel::class,
+            HistoryFeedingModel::class,
+            HistoryPhysicalActivityModel::class
+        ];
+
+        $created = [];
+        $skipped = [];
+
+        foreach ($singleTables as $modelClass) {
+            if (!method_exists($modelClass, 'query') || !method_exists($modelClass, 'create')) {
+                continue;
+            }
+
+            $exists = $modelClass::query()
+                ->where('patient_id', '=', $patientId)
+                ->where('deleted_at', 'IS', null)
+                ->count();
+
+            if ((int)$exists > 0) {
+                $skipped[] = $modelClass;
+                continue;
+            }
+
+            $modelClass::create([
+                'patient_id' => $patientId
+            ]);
+
+            $created[] = $modelClass;
+        }
+
+        return [
+            'created' => $created,
+            'skipped' => $skipped
+        ];
     }
 
-    /////////////////////////////////////////
-
-    public function createNutritionist()
+    public function createPatient()
     {
         $request = Request::getInstance();
         $payload = $request->all();
@@ -39,17 +79,17 @@ class UserController extends BaseController
         $result = \Utils\validate_keys::validateTypes($payload, $schema);
 
         if (!$result['ok']) {
-            $this->json(['error' => 'Validation failed', 'details' => $result['errors']], 422);
+            $this->json(['message' => 'Validación fallida'], 422);
             return;
         }
 
         $exists_id = UsersModel::query()
-            ->where('deleted_at', 'IS', null)
+            // ->where('deleted_at', 'IS', null)
             ->where('id_card', '=', $payload['id_card'])
             ->count();
 
-        if ($exists_id > 0) {
-            $this->json(['error' => 'id_card already exists'], 409);
+        if ((int)$exists_id > 0) {
+            $this->json(['message' => 'id_card ya existe'], 409);
             return;
         }
 
@@ -58,8 +98,8 @@ class UserController extends BaseController
             ->where('email', '=', $payload['email'])
             ->count();
 
-        if ($exists_email > 0) {
-            $this->json(['error' => 'email already exists'], 409);
+        if ((int)$exists_email > 0) {
+            $this->json(['message' => 'email ya existe'], 409);
             return;
         }
 
@@ -78,36 +118,66 @@ class UserController extends BaseController
         $userId = $newUser['id'] ?? null;
 
         if (!$userId) {
-            $this->json(['error' => 'User created but id not returned'], 500);
+            $this->json(['message' => 'Error creando usuario'], 500);
             return;
         }
 
-        $userRol = UserInRolModel::create([
-            'user_id' => $userId,
-            'rol_id' => 1
+        UserInRolModel::create([
+            'user_id' => (int)$userId,
+            'rol_id' => 3
         ]);
 
-        $this->json(['ok' => true, 'user' => $newUser, 'role' => $userRol], 201);
+        $init = $this->initClinicalHistorySingleTables((int)$userId);
+
+        $this->json([
+            'message' => 'Paciente creado correctamente',
+        ], 201);
     }
 
-
-    public function readUsers()
+    public function readPatients()
     {
-        $users = UsersModel::query()
-            ->select('id', 'names', 'surnames', 'email', 'phone', 'id_card', 'state', 'document_type_id', 'plan_id', 'email_verified', 'date_active_plan', 'last_update_password')
-            ->where('deleted_at', 'IS', null)
+        $rows = UserInRolModel::query()
+            ->select('user_id')
+            ->where('rol_id', '=', 3)
             ->get();
 
-        $this->json(['ok' => true, 'users' => $users], 200);
+        $ids = [];
+
+        if (is_array($rows)) {
+            foreach ($rows as $r) {
+                if (isset($r['user_id'])) $ids[] = (int)$r['user_id'];
+            }
+        }
+
+        if (!$ids) {
+            $this->json(['ok' => true, 'patients' => []], 200);
+            return;
+        }
+
+        $patients = [];
+
+        foreach ($ids as $userId) {
+            $u = UsersModel::query()
+                ->select('id', 'names', 'surnames', 'email', 'phone', 'id_card', 'state', 'document_type_id', 'plan_id', 'email_verified', 'date_active_plan', 'last_update_password')
+                ->where('deleted_at', 'IS', null)
+                ->where('id', '=', $userId)
+                ->first();
+
+            if ($u && empty($u['deleted_at'])) {
+                $patients[] = $u;
+            }
+        }
+
+        $this->json($patients, 200);
     }
 
-    public function updateUser()
+    public function updatePatient()
     {
         $request = Request::getInstance();
         $payload = $request->all();
 
         if (!isset($payload['id_card']) || !is_string($payload['id_card'])) {
-            $this->json(['error' => 'Validation failed', 'details' => ['id_card' => 'missing_or_type_string']], 422);
+            $this->json(['message' => 'Validación fallida'], 422);
             return;
         }
 
@@ -116,12 +186,22 @@ class UserController extends BaseController
             ->first();
 
         if (!$user) {
-            $this->json(['error' => 'id_card not found'], 404);
+            $this->json(['message' => 'Usuario no encontrado'], 404);
             return;
         }
 
         if (!empty($user['deleted_at'])) {
-            $this->json(['error' => 'user already deleted'], 409);
+            $this->json(['message' => 'Usuario ya eliminado'], 409);
+            return;
+        }
+
+        $isPatient = UserInRolModel::query()
+            ->where('user_id', '=', $user['id'])
+            ->where('rol_id', '=', 3)
+            ->count();
+
+        if ((int)$isPatient <= 0) {
+            $this->json(['message' => 'Operación no permitida'], 403);
             return;
         }
 
@@ -156,7 +236,7 @@ class UserController extends BaseController
         }
 
         if ($typeErrors) {
-            $this->json(['error' => 'Validation failed', 'details' => $typeErrors], 422);
+            $this->json(['message' => 'Validación fallida'], 422);
             return;
         }
 
@@ -166,16 +246,14 @@ class UserController extends BaseController
                 ->where('deleted_at', 'IS', null)
                 ->count();
 
-            if ($emailExists > 0) {
-                $this->json(['error' => 'email already exists'], 409);
+            if ((int)$emailExists > 0) {
+                $this->json(['message' => 'email ya existe'], 409);
                 return;
             }
         }
 
-        $updatableFields = array_keys($optionalSchema);
         $updates = [];
-
-        foreach ($updatableFields as $field) {
+        foreach (array_keys($optionalSchema) as $field) {
             if (!array_key_exists($field, $payload)) continue;
 
             if ($field === 'password') {
@@ -197,20 +275,16 @@ class UserController extends BaseController
         }
 
         if (empty($updates)) {
-            $this->json(['ok' => true, 'message' => 'No changes detected', 'user' => $user], 200);
+            $this->json(['message' => 'No se detectaron cambios'], 200);
             return;
         }
 
         UsersModel::update($user['id'], $updates);
 
-        $updatedUser = UsersModel::query()
-            ->where('id_card', '=', $payload['id_card'])
-            ->first();
-
-        $this->json(['ok' => true, 'message' => 'User updated', 'updated_fields' => array_keys($updates), 'user' => $updatedUser], 200);
+        $this->json(['message' => 'Paciente actualizado correctamente'], 200);
     }
 
-    public function deleteUser()
+    public function deletePatient()
     {
         $request = Request::getInstance();
         $payload = $request->all();
@@ -222,7 +296,7 @@ class UserController extends BaseController
         $result = \Utils\validate_keys::validateTypes($payload, $schema);
 
         if (!$result['ok']) {
-            $this->json(['error' => 'Validation failed', 'details' => $result['errors']], 422);
+            $this->json(['message' => 'Validación fallida'], 422);
             return;
         }
 
@@ -231,12 +305,22 @@ class UserController extends BaseController
             ->first();
 
         if (!$user) {
-            $this->json(['error' => 'user not found'], 404);
+            $this->json(['message' => 'Usuario no encontrado'], 404);
             return;
         }
 
         if (!empty($user['deleted_at'])) {
-            $this->json(['error' => 'user already deleted'], 409);
+            $this->json(['message' => 'Usuario ya eliminado'], 409);
+            return;
+        }
+
+        $isPatient = UserInRolModel::query()
+            ->where('user_id', '=', $user['id'])
+            ->where('rol_id', '=', 3)
+            ->count();
+
+        if ((int)$isPatient <= 0) {
+            $this->json(['message' => 'Operación no permitida'], 403);
             return;
         }
 
@@ -244,8 +328,6 @@ class UserController extends BaseController
             'deleted_at' => date('Y-m-d H:i:s')
         ]);
 
-        $this->json(['ok' => true, 'message' => 'User deleted'], 200);
+        $this->json(['message' => 'Paciente eliminado correctamente'], 200);
     }
-        
-
 }

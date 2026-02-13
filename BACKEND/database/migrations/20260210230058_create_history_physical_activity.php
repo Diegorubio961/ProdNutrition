@@ -12,9 +12,9 @@ class CreateHistoryPhysicalActivity
 
             $table->foreignId('patient_id');
 
-            $table->string('activity');
+            $table->string('activity', 255, false, true);
             $table->decimal('frequency_days');
-            $table->string('training_schedule');
+            $table->string('training_schedule', 255, false, true);
             $table->decimal('intensity_hours');
 
             $table->timestamps();

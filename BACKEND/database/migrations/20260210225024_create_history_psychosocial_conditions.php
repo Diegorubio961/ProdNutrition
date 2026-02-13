@@ -12,9 +12,9 @@ class CreateHistoryPsychosocialConditions
 
             $table->foreignId('patient_id');
 
-            $table->string('conditions');
+            $table->string('conditions', 255, false, true);
             $table->decimal('sleep_hours');
-            $table->string('sleep_quality');
+            $table->string('sleep_quality', 255, false, true);
 
             $table->timestamps();
             $table->softDeletes();

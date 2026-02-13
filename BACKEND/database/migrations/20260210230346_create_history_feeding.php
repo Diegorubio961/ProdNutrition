@@ -12,11 +12,11 @@ class CreateHistoryFeeding
 
             $table->foreignId('patient_id');
 
-            $table->string('appetite');
-            $table->string('preferences');
-            $table->string('rejections');
-            $table->string('intolerances_allergies');
-            $table->string('general_observations');
+            $table->string('appetite', 255, false, true);
+            $table->string('preferences', 255, false, true);
+            $table->string('rejections', 255, false, true);
+            $table->string('intolerances_allergies', 255, false, true);
+            $table->string('general_observations', 255, false, true);
 
             $table->timestamps();
             $table->softDeletes();
