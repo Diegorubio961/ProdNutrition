@@ -10,6 +10,11 @@ use App\Models\HistoryInfoHealthModel;
 use App\Models\HistoryPsychosocialConditionsModel;
 use App\Models\HistoryFeedingModel;
 use App\Models\HistoryPhysicalActivityModel;
+use App\Models\MeasureGeneralModel;
+use App\Models\MeasureFoldsModel;
+use App\Models\MeasurePerimetersModel;
+use App\Models\MeasureLenghtsModel;
+use App\Models\MeasureDiametersModel;
 use Core\Request;
 
 class patientController extends BaseController
@@ -27,7 +32,12 @@ class patientController extends BaseController
             HistoryInfoHealthModel::class,
             HistoryPsychosocialConditionsModel::class,
             HistoryFeedingModel::class,
-            HistoryPhysicalActivityModel::class
+            HistoryPhysicalActivityModel::class,
+            MeasureGeneralModel::class,
+            MeasureFoldsModel::class,
+            MeasurePerimetersModel::class,
+            MeasureLenghtsModel::class,
+            MeasureDiametersModel::class
         ];
 
         $created = [];
