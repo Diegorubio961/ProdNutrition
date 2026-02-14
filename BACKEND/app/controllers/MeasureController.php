@@ -9,6 +9,7 @@ use App\Models\MeasureFoldsModel;
 use App\Models\MeasurePerimetersModel;
 use App\Models\MeasureLenghtsModel;
 use App\Models\MeasureDiametersModel;
+use App\Models\MeasureAdditionalVariablesModel;
 
 class MeasureController extends BaseController
 {
@@ -125,6 +126,21 @@ class MeasureController extends BaseController
                     'femur_biepicondylar' => 'decimal',
                     'ankle_bimalleolar' => 'decimal',
                     'foot' => 'decimal'
+                ],
+                'required' => ['table', 'patient_id']
+            ],
+            'measure_additional_variables' => [
+                'model' => MeasureAdditionalVariablesModel::class,
+                'mode' => 'single',
+                'schema' => [
+                    'table' => 'string',
+                    'patient_id' => 'int',
+                    'ideal_fat_percentage' => 'decimal',
+                    'ideal_fat_percentage_jyp' => 'decimal',
+                    'ideal_fat_percentage_durning' => 'decimal',
+                    'height_age_sd' => 'decimal',
+                    'bmi_age_sd' => 'decimal',
+                    'growth_remaining_cm' => 'decimal'
                 ],
                 'required' => ['table', 'patient_id']
             ]

@@ -186,25 +186,25 @@ $clasificacion_yuhasz ; // FALTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa
 
 
 # ------------------------------------------------------+ DURNING Y RAMAHAN +------------------------------------------------------- #
-$sumatoria_4_pliegues = $pliegue_triceps + $pliegue_biceps + $pliegue_subescapular + $pliegue_suprailiaco;
-$densidad_hombres_durning = ((1.1533-0.0643*(log10($sumatoria_4_pliegues))));
-$porcentaje_grasa_hombres_durning = (((4.95/$densidad_hombres_durning) - 4.5) * 100); ;
-$grasa_hombres_durning_kg = ($porcentaje_grasa_hombres_durning * $peso_kg )/100;
-$mlg_hombres_durning_kg = $peso_kg - $grasa_hombres_durning_kg;
-$imc_durning = ($talla_cm==0) ? " " : ($peso_kg / (($talla_cm / 100) ** 2));
-$iaks_hombres = $aks_hombres;
-$porcentaje_grasa_adecuado_durning = 0; // SE INGRESA MANUALMENTE
-$mca_durning = $mlg_hombres_durning_kg / (1-$porcentaje_grasa_adecuado_durning/100);
-$kg_a_perder_durning = $peso_kg - $mca_durning;
+// $sumatoria_4_pliegues = $pliegue_triceps + $pliegue_biceps + $pliegue_subescapular + $pliegue_suprailiaco;
+// $densidad_hombres_durning = ((1.1533-0.0643*(log10($sumatoria_4_pliegues))));
+// $porcentaje_grasa_hombres_durning = (((4.95/$densidad_hombres_durning) - 4.5) * 100); ;
+// $grasa_hombres_durning_kg = ($porcentaje_grasa_hombres_durning * $peso_kg )/100;
+// $mlg_hombres_durning_kg = $peso_kg - $grasa_hombres_durning_kg;
+// $imc_durning = ($talla_cm==0) ? " " : ($peso_kg / (($talla_cm / 100) ** 2));
+// $iaks_hombres = $aks_hombres;
+// $porcentaje_grasa_adecuado_durning = 0; // SE INGRESA MANUALMENTE
+// $mca_durning = $mlg_hombres_durning_kg / (1-$porcentaje_grasa_adecuado_durning/100);
+// $kg_a_perder_durning = $peso_kg - $mca_durning;
 
-$densidad_mujeres_durning = (1.1369 - 0.0598 * log10($sumatoria_4_pliegues));
-$porcentaje_grasa_mujeres_durning = (((4.95 / $densidad_mujeres_durning) - 4.5) * 100);
-$grasa_mujeres_durning_kg = ($porcentaje_grasa_mujeres_durning * $peso_kg) / 100;
-$mlg_mujeres_kg_durning = $peso_kg - $grasa_mujeres_durning_kg;
-$iaks_mujeres_durning = $aks_mujeres;
-$mca_mujeres_durning = $mlg_mujeres_kg_durning / (1-$porcentaje_grasa_adecuado_durning/100);
-$kg_a_perder = $peso_kg - $mca_mujeres_durning;
-$porcentaje_grasa_final_durning = ($sexo == "F") ? $porcentaje_grasa_mujeres_durning : (($sexo == "M") ? $porcentaje_grasa_hombres_durning : null);
+// $densidad_mujeres_durning = (1.1369 - 0.0598 * log10($sumatoria_4_pliegues));
+// $porcentaje_grasa_mujeres_durning = (((4.95 / $densidad_mujeres_durning) - 4.5) * 100);
+// $grasa_mujeres_durning_kg = ($porcentaje_grasa_mujeres_durning * $peso_kg) / 100;
+// $mlg_mujeres_kg_durning = $peso_kg - $grasa_mujeres_durning_kg;
+// $iaks_mujeres_durning = $aks_mujeres;
+// $mca_mujeres_durning = $mlg_mujeres_kg_durning / (1-$porcentaje_grasa_adecuado_durning/100);
+// $kg_a_perder = $peso_kg - $mca_mujeres_durning;
+// $porcentaje_grasa_final_durning = ($sexo == "F") ? $porcentaje_grasa_mujeres_durning : (($sexo == "M") ? $porcentaje_grasa_hombres_durning : null);
 
 
 // echo "imc_durning: " . $imc_durning . PHP_EOL;
