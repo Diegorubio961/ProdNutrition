@@ -23,6 +23,8 @@ class CreateMeasureGeneralTable
             $table->decimal('bench_height_cm', 8, 2);
             $table->decimal('corrected_sitting_height_cm', 8, 2);
             $table->decimal('wingspan_cm', 8, 2);
+            $table->string('ethnicity', 255, false, true); 
+            $table->string('sport_line', 255, false, true);
 
             $table->timestamps();
             $table->softDeletes();

@@ -42,7 +42,9 @@ class MeasureController extends BaseController
                     'sitting_height_cm' => 'decimal',
                     'bench_height_cm' => 'decimal',
                     'corrected_sitting_height_cm' => 'decimal',
-                    'wingspan_cm' => 'decimal'
+                    'wingspan_cm' => 'decimal',
+                    'ethnicity' => 'string',
+                    'sport_line' => 'string'
                 ],
                 'required' => ['table', 'patient_id']
             ],
