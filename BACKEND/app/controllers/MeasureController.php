@@ -137,14 +137,14 @@ class MeasureController extends BaseController
         $payload = $request->all();
 
         if (!isset($payload['table']) || !is_string($payload['table'])) {
-            $this->json(['error' => 'Validación fallida', 'details' => ['table' => 'faltante_o_tipo_string']], 422);
+            $this->json(['message' => 'Validación fallida: tabla faltante o tipo incorrecto'], 422);
             return;
         }
 
         $table = $payload['table'];
 
         if (!array_key_exists($table, $this->tables)) {
-            $this->json(['error' => 'Validación fallida', 'details' => ['table' => 'tabla_invalida']], 422);
+            $this->json(['message' => 'Tabla inválida'], 422);
             return;
         }
 
@@ -165,7 +165,7 @@ class MeasureController extends BaseController
         $result = \Utils\validate_keys::validateTypes($payload, $requiredSchema);
 
         if (!$result['ok']) {
-            $this->json(['error' => 'Validación fallida', 'details' => $result['errors']], 422);
+            $this->json(['message' => 'Validación fallida en campos requeridos'], 422);
             return;
         }
 
@@ -175,18 +175,12 @@ class MeasureController extends BaseController
         $user = UsersModel::find($patientId);
 
         if (!$user) {
-            $this->json([
-                'error' => 'paciente_no_encontrado',
-                'details' => ['patient_id' => 'no_existe_en_usuarios']
-            ], 404);
+            $this->json(['message' => 'Paciente no encontrado'], 404);
             return;
         }
 
         if (!method_exists($modelClass, 'query') || !method_exists($modelClass, 'update')) {
-            $this->json([
-                'error' => 'configuracion_invalida',
-                'details' => ['model' => 'metodo_query_o_update_no_disponible']
-            ], 500);
+            $this->json(['message' => 'Error de configuración: método no disponible'], 500);
             return;
         }
 
@@ -202,12 +196,7 @@ class MeasureController extends BaseController
         }
 
         if (!$record || !empty($record['deleted_at'])) {
-            $this->json([
-                'error' => 'registro_no_encontrado',
-                'details' => $mode === 'single'
-                    ? ['patient_id' => 'no_existe_registro_en_tabla_single']
-                    : ['id' => 'no_existe_en_tabla']
-            ], 404);
+            $this->json(['message' => 'Registro no encontrado'], 404);
             return;
         }
 
@@ -215,10 +204,7 @@ class MeasureController extends BaseController
              if (array_key_exists('patient_id', $schema)) {
                 $currentPatientId = $record['patient_id'] ?? null;
                 if ($currentPatientId !== null && (int)$currentPatientId !== (int)$patientId) {
-                    $this->json([
-                        'error' => 'registro_no_corresponde_al_paciente',
-                        'details' => ['patient_id' => 'no_coincide_con_el_registro']
-                    ], 403);
+                    $this->json(['message' => 'El registro no corresponde al paciente'], 403);
                     return;
                 }
             }
@@ -241,10 +227,7 @@ class MeasureController extends BaseController
         }
 
         if ($unknownFields) {
-            $this->json([
-                'error' => 'Validación fallida',
-                'details' => ['campos_no_permitidos' => $unknownFields]
-            ], 422);
+            $this->json(['message' => 'Campos no permitidos en la actualización'], 422);
             return;
         }
 
@@ -256,10 +239,7 @@ class MeasureController extends BaseController
         }
 
         if (!$providedFields) {
-            $this->json([
-                'error' => 'Validación fallida',
-                'details' => ['update' => 'debe_enviar_al_menos_un_campo_actualizable']
-            ], 422);
+            $this->json(['message' => 'Debe enviar al menos un campo actualizable'], 422);
             return;
         }
 
@@ -275,11 +255,11 @@ class MeasureController extends BaseController
                 default => false
             };
 
-            if (!$ok) $typeErrors[$key] = "tipo_{$type}_invalido";
+            if (!$ok) $typeErrors[$key] = true;
         }
 
         if ($typeErrors) {
-            $this->json(['error' => 'Validación fallida', 'details' => $typeErrors], 422);
+            $this->json(['message' => 'Error de tipo en los datos enviados'], 422);
             return;
         }
 
@@ -299,18 +279,14 @@ class MeasureController extends BaseController
         }
 
         if (empty($updates)) {
-            $this->json([
-                'mensaje' => 'No se detectaron cambios para actualizar'
-            ], 200);
+            $this->json(['message' => 'No se detectaron cambios para actualizar'], 200);
             return;
         }
 
         $recordId = $record['id'];
         $modelClass::update($recordId, $updates);
 
-        $this->json([
-            'message' => 'Registro actualizado correctamente'
-        ], 200);
+        $this->json(['message' => 'Registro actualizado correctamente'], 200);
     }
 
     public function delete()
@@ -319,14 +295,14 @@ class MeasureController extends BaseController
         $payload = $request->all();
 
         if (!isset($payload['table']) || !is_string($payload['table'])) {
-            $this->json(['error' => 'Validación fallida', 'details' => ['table' => 'faltante_o_tipo_string']], 422);
+            $this->json(['message' => 'Validación fallida: tabla faltante o tipo incorrecto'], 422);
             return;
         }
 
         $table = $payload['table'];
 
         if (!array_key_exists($table, $this->tables)) {
-            $this->json(['error' => 'Validación fallida', 'details' => ['table' => 'tabla_invalida']], 422);
+            $this->json(['message' => 'Tabla inválida'], 422);
             return;
         }
 
@@ -347,7 +323,7 @@ class MeasureController extends BaseController
         $result = \Utils\validate_keys::validateTypes($payload, $requiredSchema);
 
         if (!$result['ok']) {
-            $this->json(['error' => 'Validación fallida', 'details' => $result['errors']], 422);
+            $this->json(['message' => 'Validación fallida en campos requeridos'], 422);
             return;
         }
 
@@ -357,18 +333,12 @@ class MeasureController extends BaseController
         $user = UsersModel::find($patientId);
 
         if (!$user) {
-            $this->json([
-                'error' => 'paciente_no_encontrado',
-                'details' => ['patient_id' => 'no_existe_en_usuarios']
-            ], 404);
+            $this->json(['message' => 'Paciente no encontrado'], 404);
             return;
         }
 
         if (!method_exists($modelClass, 'query')) {
-             $this->json([
-                'error' => 'configuracion_invalida',
-                'details' => ['model' => 'metodo_query_no_disponible']
-            ], 500);
+             $this->json(['message' => 'Error de configuración: método no disponible'], 500);
             return;
         }
 
@@ -384,12 +354,7 @@ class MeasureController extends BaseController
         }
 
         if (!$record || !empty($record['deleted_at'])) {
-            $this->json([
-                'error' => 'registro_no_encontrado',
-                'details' => $mode === 'single'
-                    ? ['patient_id' => 'no_existe_registro_en_tabla_single']
-                    : ['id' => 'no_existe_en_tabla']
-            ], 404);
+            $this->json(['message' => 'Registro no encontrado'], 404);
             return;
         }
 
@@ -397,10 +362,7 @@ class MeasureController extends BaseController
             if (array_key_exists('patient_id', $schema)) {
                 $currentPatientId = $record['patient_id'] ?? null;
                 if ($currentPatientId !== null && (int)$currentPatientId !== (int)$patientId) {
-                    $this->json([
-                        'error' => 'registro_no_corresponde_al_paciente',
-                        'details' => ['patient_id' => 'no_coincide_con_el_registro']
-                    ], 403);
+                    $this->json(['message' => 'El registro no corresponde al paciente'], 403);
                     return;
                 }
             }
@@ -409,10 +371,7 @@ class MeasureController extends BaseController
         // Soft delete
         if (array_key_exists('deleted_at', $record)) {
             if (!method_exists($modelClass, 'update')) {
-                $this->json([
-                    'error' => 'configuracion_invalida',
-                    'details' => ['model' => 'metodo_update_no_disponible_para_soft_delete']
-                ], 500);
+                $this->json(['message' => 'Error de configuración: update no disponible para soft delete'], 500);
                 return;
             }
 
@@ -424,10 +383,7 @@ class MeasureController extends BaseController
                     ->where('id', '=', $record['id'])
                     ->delete();
             } else {
-                $this->json([
-                    'error' => 'configuracion_invalida',
-                    'details' => ['model' => 'metodo_delete_no_disponible']
-                ], 500);
+                $this->json(['message' => 'Error de configuración: delete no disponible'], 500);
                 return;
             }
         }

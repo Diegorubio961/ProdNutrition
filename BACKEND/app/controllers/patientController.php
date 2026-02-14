@@ -89,7 +89,7 @@ class patientController extends BaseController
         $result = \Utils\validate_keys::validateTypes($payload, $schema);
 
         if (!$result['ok']) {
-            $this->json(['message' => 'Validación fallida'], 422);
+            $this->json(['message' => 'Validación fallida en campos requeridos'], 422);
             return;
         }
 
@@ -99,7 +99,7 @@ class patientController extends BaseController
             ->count();
 
         if ((int)$exists_id > 0) {
-            $this->json(['message' => 'id_card ya existe'], 409);
+            $this->json(['message' => 'El id_card ya existe'], 409);
             return;
         }
 
@@ -109,7 +109,7 @@ class patientController extends BaseController
             ->count();
 
         if ((int)$exists_email > 0) {
-            $this->json(['message' => 'email ya existe'], 409);
+            $this->json(['message' => 'El email ya existe'], 409);
             return;
         }
 
@@ -139,9 +139,7 @@ class patientController extends BaseController
 
         $init = $this->initClinicalHistorySingleTables((int)$userId);
 
-        $this->json([
-            'message' => 'Paciente creado correctamente',
-        ], 201);
+        $this->json(['message' => 'Paciente creado correctamente'], 201);
     }
 
     public function readPatients()
@@ -187,7 +185,7 @@ class patientController extends BaseController
         $payload = $request->all();
 
         if (!isset($payload['id_card']) || !is_string($payload['id_card'])) {
-            $this->json(['message' => 'Validación fallida'], 422);
+            $this->json(['message' => 'Validación fallida: id_card requerido'], 422);
             return;
         }
 
@@ -242,11 +240,11 @@ class patientController extends BaseController
                 default => false
             };
 
-            if (!$ok) $typeErrors[$key] = "type_{$type}";
+            if (!$ok) $typeErrors[$key] = true;
         }
 
         if ($typeErrors) {
-            $this->json(['message' => 'Validación fallida'], 422);
+            $this->json(['message' => 'Error de tipo en los datos'], 422);
             return;
         }
 
@@ -257,7 +255,7 @@ class patientController extends BaseController
                 ->count();
 
             if ((int)$emailExists > 0) {
-                $this->json(['message' => 'email ya existe'], 409);
+                $this->json(['message' => 'El email ya existe'], 409);
                 return;
             }
         }
