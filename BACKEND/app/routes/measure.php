@@ -13,4 +13,7 @@ $router->group(['prefix' => '/measure', 'middleware' => []], function($router) {
     $router->post('/delete', [
         'action' => ['App\Controllers\MeasureController', 'delete']
     ]);
+    $router->post('/calculations', [
+        'action' => ['App\Controllers\MeasureCalculationsController', 'getCalculations']
+    ]);
 });
