@@ -237,9 +237,9 @@ class MeasureCalculationsController extends BaseController
         $perimetro_cintura_corregido = $perimetro_cintura - ($pliegue_abdominal * 0.3141);
         $suma_torax = $diametro_torax_transverso + $diametro_torax_anteroposterior + $perimetro_cintura_corregido;
         
-        $scale_factor_sentado = ($talla_sentado_corregida_cm > 0) ? (89.92 / $talla_sentado_corregida_cm) : 0;
-        $score_z_residual = ($scale_factor_sentado > 0) ? (($suma_torax * $scale_factor_sentado) - 109.35) / 7.08 : 0;
-        $masa_residual_kg = ($scale_factor_sentado > 0) ? (($score_z_residual * 1.24) + 6.1) / ($scale_factor_sentado ** 3) : 0;
+        $scale_factor_sentado = ($talla_sentado_corregida_cm != 0) ? (89.92 / $talla_sentado_corregida_cm) : 0;
+        $score_z_residual = ($scale_factor_sentado != 0) ? (($suma_torax * $scale_factor_sentado) - 109.35) / 7.08 : 0;
+        $masa_residual_kg = ($scale_factor_sentado != 0) ? (($score_z_residual * 1.24) + 6.1) / ($scale_factor_sentado ** 3) : 0;
         
         $sumatoria_seis_pliegues = $pliegue_triceps + $pliegue_subescapular + $pliegue_supraespinal + $pliegue_abdominal + $pliegue_muslo + $pliegue_pierna;
         $score_z_adiposa = (($sumatoria_seis_pliegues * $scale_factor) - 116.41) / 34.79;
