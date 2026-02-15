@@ -21,55 +21,102 @@ class MeasureNullSeeder
 
     private static function createSpecificNullPatient()
     {
-        $patientId = self::createOrGetPatient('999999999', 'Null', 'Test Patient', 'null.test@example.com');
+        $patientIdCard = self::createOrGetPatient('999999999', 'Null', 'Test Patient', 'null.test@example.com');
         
-        // 1. History - Explicit Nulls
+        // 1. History - All Valid now
         HistoryGeneralModel::create([
-            'patient_id' => $patientId,
-            'birth_date' => null, 
+            'patient_id' => $patientIdCard,
+            'birth_date' => '1990-01-01', 
             'care_date' => date('Y-m-d H:i:s'),
-            'social_stratum' => null,
-            'cohabiting_people' => 1
+            'social_stratum' => 3,
+            'cohabiting_people' => 1,
+            'health_provider' => 'EPS',
+            'education_level' => 'Universitario',
+            'occupation' => 'Empleado'
         ]);
 
-        // 2. Measure General
-        self::upsert(MeasureGeneralModel::class, $patientId, [
-            'patient_id' => $patientId,
-            'occupation_sport' => null,
+        // 2. Measure General - All Valid
+        self::upsert(MeasureGeneralModel::class, $patientIdCard, [
+            'patient_id' => $patientIdCard,
+            'occupation_sport' => 'None',
             'category_modality' => 'Sedentary',
             'anthropometry' => 'Si',
-            'sex' => 'M',
+            'sex' => 'M', // Need Male for some specific formulas or F? User didn't specify, default to M or F. M is fine.
             'weight_kg' => 70.0,
             'height_cm' => 175.0,
-            'wingspan_cm' => null 
+            'sitting_height_cm' => 90.0,
+            'bench_height_cm' => 45.0,
+            'wingspan_cm' => 176.0,
+            'ethnicity' => 'M',
+            'sport_line' => 'None',
+            'control' => 'No'
         ]);
 
-        // 3. Folds - Partial
-        self::upsert(MeasureFoldsModel::class, $patientId, [
-            'patient_id' => $patientId,
-            'triceps' => 10.0,
-            'subspcapular' => null,
+        // 3. Folds - ONLY TRICEPS NULL
+        self::upsert(MeasureFoldsModel::class, $patientIdCard, [
+            'patient_id' => $patientIdCard,
+            'triceps' => 8, // <--- THE ONLY NULL
+            'subspcapular' => 12.0,
             'biceps' => 5.0,
-            'pectoral' => null
+            'pectoral' => 10.0,
+            'axillary' => 8.0,
+            'suprailiac' => 15.0,
+            'supraspinal' => 8.0,
+            'abdominal' => 20.0,
+            'thigh' => 15.0,
+            'leg' => 10.0
         ]);
 
-        // 4. Perimeters - Partial
-        self::upsert(MeasurePerimetersModel::class, $patientId, [
-            'patient_id' => $patientId,
-            'waist' => null,
-            'hip' => 90.0
+        // 4. Perimeters - Valid
+        self::upsert(MeasurePerimetersModel::class, $patientIdCard, [
+            'patient_id' => $patientIdCard,
+            'head' => null,
+            'neck' => 38.0,
+            'arm_relaxed' => 30.0,
+            'arm_tensed' => 32.0,
+            'forearm' => 28.0,
+            'wrist' => 17.0,
+            'mesosternal' => 95.0,
+            'waist' => 85.0,
+            'abdominal' => 88.0,
+            'hip' => 100.0,
+            'thigh_max' => 55.0,
+            'thigh_mid' => 50.0,
+            'calf_max' => 38.0,
+            'ankle_min' => 22.0
         ]);
 
-        // 5. Lengths - Partial
-        self::upsert(MeasureLenghtsModel::class, $patientId, [
-            'patient_id' => $patientId,
-            'acromial_radial' => 30.0
+        // 5. Lengths - Valid
+        self::upsert(MeasureLenghtsModel::class, $patientIdCard, [
+            'patient_id' => $patientIdCard,
+            'acromial_radial' => 32.0,
+            'radial_styloid' => 25.0,
+            'medial_styloid_dactilar' => 19.0,
+            'ileospinal' => 90.0,
+            'trochanteric' => 92.0,
+            'trochanteric_tibial_lateral' => 45.0,
+            'tibial_lateral' => 40.0,
+            'tibial_medial_malleolar_medial' => 38.0,
+            'foot' => 26.0
         ]);
 
-        // 6. Diameters - All Null
-        self::upsert(MeasureDiametersModel::class, $patientId, ['patient_id' => $patientId]);
+        // 6. Diameters - Valid
+        self::upsert(MeasureDiametersModel::class, $patientIdCard, [
+            'patient_id' => $patientIdCard,
+            'biacromial' => 40.0,
+            'biileocrestal' => 28.0,
+            'antero_posterior_abdominal' => 20.0,
+            'thorax_transverse' => 28.0,
+            'thorax_antero_posterior' => 22.0,
+            'humerus_biepicondylar' => 7.0,
+            'wrist_bistyloid' => 5.5,
+            'hand' => 19.0,
+            'femur_biepicondylar' => 9.5,
+            'ankle_bimalleolar' => 7.0,
+            'foot' => 10.0 // Breadth? Usually smaller.
+        ]);
 
-        echo "Specific Null Patient (999999999) created.\n";
+        echo "Specific Null Patient (999999999) created with ONLY triceps = NULL.\n";
     }
 
     private static function createRandomNullPatient()
