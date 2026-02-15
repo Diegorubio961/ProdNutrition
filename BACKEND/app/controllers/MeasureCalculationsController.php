@@ -35,13 +35,14 @@ class MeasureCalculationsController extends BaseController
         $patientId = $user['id'];
 
         // 1. Fetch Data
+        // 1. Fetch Data
         $general = MeasureGeneralModel::query()->where('patient_id', '=', $patientId)->first();
-        $folds = MeasureFoldsModel::query()->where('patient_id', '=', $patientId)->first();
-        $perimeters = MeasurePerimetersModel::query()->where('patient_id', '=', $patientId)->first();
-        $lengths = MeasureLenghtsModel::query()->where('patient_id', '=', $patientId)->first();
-        $diameters = MeasureDiametersModel::query()->where('patient_id', '=', $patientId)->first();
-        $additional = MeasureAdditionalVariablesModel::query()->where('patient_id', '=', $patientId)->first();
-        $history = HistoryGeneralModel::query()->where('patient_id', '=', $patientId)->first();
+        $folds = MeasureFoldsModel::query()->where('patient_id', '=', $patientId)->first() ?: [];
+        $perimeters = MeasurePerimetersModel::query()->where('patient_id', '=', $patientId)->first() ?: [];
+        $lengths = MeasureLenghtsModel::query()->where('patient_id', '=', $patientId)->first() ?: [];
+        $diameters = MeasureDiametersModel::query()->where('patient_id', '=', $patientId)->first() ?: [];
+        $additional = MeasureAdditionalVariablesModel::query()->where('patient_id', '=', $patientId)->first() ?: [];
+        $history = HistoryGeneralModel::query()->where('patient_id', '=', $patientId)->first() ?: [];
 
 
         // print_r([
@@ -61,20 +62,47 @@ class MeasureCalculationsController extends BaseController
         }
 
         // 2. Map Variables
-        $sexo = $general['sex'] ?? 'M'; 
-
+        $sexo = $general['sex'] ?? null; 
         $peso_kg = (float)($general['weight_kg'] ?? 0);
         $talla_cm = (float)($general['height_cm'] ?? 0);
         $talla_sentado_cm = (float)($general['sitting_height_cm'] ?? 0);
         $altura_banco_cm = (float)($general['bench_height_cm'] ?? 0); // Need this for correction
-        $talla_sentado_corregida_cm = ($general['corrected_sitting_height_cm'] != 0) ? (float)$general['corrected_sitting_height_cm'] : ($talla_sentado_cm - $altura_banco_cm);
+        $talla_sentado_corregida_cm = ((float)($general['corrected_sitting_height_cm'] ?? 0) != 0) ? (float)$general['corrected_sitting_height_cm'] : ($talla_sentado_cm - $altura_banco_cm);
         $envergadura_cm = (float)($general['wingspan_cm'] ?? 0);
         
-        $edad = 27; // Default or calc
+        $missingFields = [];
+        
+        if (empty($sexo)) {
+            $missingFields[] = 'Sexo';
+        }
+        if ($peso_kg <= 0) {
+            $missingFields[] = 'Peso (kg)';
+        }
+        if ($talla_cm <= 0) {
+            $missingFields[] = 'Talla (cm)';
+        }
+
+        $edad = null;
         if ($history && !empty($history['birth_date'])) {
-            $dob = new \DateTime($history['birth_date']);
-            $now = new \DateTime();
-            $edad = $now->diff($dob)->y;
+            try {
+                $dob = new \DateTime($history['birth_date']);
+                $now = new \DateTime();
+                $edad = $now->diff($dob)->y;
+            } catch (\Exception $e) {
+                // Invalid date format
+            }
+        }
+
+        if ($edad === null) {
+            $missingFields[] = 'Fecha de Nacimiento';
+        }
+
+        if (!empty($missingFields)) {
+            $this->json([
+                'message' => 'Faltan datos necesarios para realizar los cálculos: ' . implode(', ', $missingFields),
+                'missing_fields' => $missingFields
+            ], 422);
+            return;
         }
 
         $pliegue_triceps = (float)($folds['triceps'] ?? 0);
@@ -269,6 +297,43 @@ class MeasureCalculationsController extends BaseController
         $masa_osea_kg_final = $masa_osea_total_kg - $ajustes_masa_osea;
         $masa_piel_kg_final = $masa_piel_kg - $ajustes_masa_piel;
         $total_masa_kg = $masa_piel_kg_final + $masa_total_adiposa_kg_final + $masa_total_muscular_kg_final + $masa_residual_kg_final + $masa_osea_kg_final;
+
+        $results['vars_components'] = [
+            'constante_masa_piel' => $constante_masa_piel,
+            'grosor_piel' => $grosor_piel,
+            'suma_diametros_masa_osea' => $suma_diametros_masa_osea,
+            'scale_factor' => $scale_factor,
+            'score_z_oseo_cuerpo' => $score_z_oseo_cuerpo,
+            'masa_osea_cuerpo_kg' => $masa_osea_cuerpo_kg,
+            'score_z_cabeza' => $score_z_cabeza,
+            'masa_osea_cabeza_kg' => $masa_osea_cabeza_kg,
+            'masa_osea_total_kg' => $masa_osea_total_kg,
+            'perimetro_brazo_corregido' => $perimetro_brazo_corregido,
+            'perimetro_antebrazo' => $perimetro_antebrazo,
+            'perimetro_muslo_corregido' => $perimetro_muslo_corregido,
+            'perimetro_pantorrilla_corregido' => $perimetro_pantorrilla_corregido,
+            'perimetro_torax_corregido' => $perimetro_torax_corregido,
+            'suma_perimetros_corregidos' => $suma_perimetros_corregidos,
+            'score_z_muscular' => $score_z_muscular,
+            'masa_muscular_kg' => $masa_muscular_kg,
+            'perimetro_cintura_corregido' => $perimetro_cintura_corregido,
+            'suma_torax' => $suma_torax,
+            'scale_factor_sentado' => $scale_factor_sentado,
+            'score_z_residual' => $score_z_residual,
+            'masa_residual_kg' => $masa_residual_kg,
+            'sumatoria_seis_pliegues' => $sumatoria_seis_pliegues,
+            'score_z_adiposa' => $score_z_adiposa,
+            'masa_adiposa_kg' => $masa_adiposa_kg,
+            'area_superficial' => $area_superficial,
+            'masa_piel_kg' => $masa_piel_kg,
+            'peso_estructurado_kg' => $peso_estructurado_kg,
+            'diferencia_pe_peso_bruto' => $diferencia_pe_peso_bruto,
+            'ajustes_masa_piel' => $ajustes_masa_piel,
+            'ajuste_adiposa' => $ajuste_adiposa,
+            'ajustes_masa_muscular' => $ajustes_masa_muscular,
+            'ajustes_masa_residual' => $ajustes_masa_residual,
+            'ajustes_masa_osea' => $ajustes_masa_osea,
+        ];
 
         $results['5_Componentes'] = [
             'masa_piel_kg' => $masa_piel_kg_final,

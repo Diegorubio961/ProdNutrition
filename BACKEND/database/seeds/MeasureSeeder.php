@@ -33,7 +33,8 @@ class MeasureSeeder
         if (!$exists) {
             $createdUser = UsersModel::create($patientData);
             $patientId = $createdUser['id'];
-            echo "Patient created with ID: $patientId\n";
+            $patientIdCard = $createdUser['id_card'];
+            echo "Patient created with ID Card: $patientIdCard\n";
 
             // Assign Role 3 (Patient)
             UserInRolModel::create([
@@ -56,7 +57,8 @@ class MeasureSeeder
 
         } else {
             $patientId = $exists['id'];
-            echo "Patient already exists with ID: $patientId\n";
+            $patientIdCard = $exists['id_card'];
+            echo "Patient already exists with ID Card: $patientIdCard\n";
             // Ensure role exists
              $hasRole = UserInRolModel::query()->where('user_id', '=', $patientId)->where('rol_id', '=', 3)->count();
              if ($hasRole == 0) {
