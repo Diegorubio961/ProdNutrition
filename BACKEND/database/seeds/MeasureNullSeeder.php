@@ -159,7 +159,9 @@ class MeasureNullSeeder
 
     private static function createOrGetPatient($idCard, $name, $surname, $email)
     {
+        $id = null;
         $exists = UsersModel::query()->where('email', '=', $email)->first();
+        
         if (!$exists) {
             $user = UsersModel::create([
                 'names' => $name, 'surnames' => $surname, 'email' => $email, 'password' => 'password123',
@@ -167,13 +169,37 @@ class MeasureNullSeeder
             ]);
             $id = $user['id'];
             UserInRolModel::create(['user_id' => $id, 'rol_id' => 3]);
-            return $id;
         } else {
             $id = $exists['id'];
-             $hasRole = UserInRolModel::query()->where('user_id', '=', $id)->where('rol_id', '=', 3)->count();
-             if ($hasRole == 0) UserInRolModel::create(['user_id' => $id, 'rol_id' => 3]);
-            return $id;
+            $hasRole = UserInRolModel::query()->where('user_id', '=', $id)->where('rol_id', '=', 3)->count();
+            if ($hasRole == 0) UserInRolModel::create(['user_id' => $id, 'rol_id' => 3]);
         }
+
+        // Link to Nutritionist (Pivot)
+        $nutritionist = UsersModel::query()
+            ->select('users.id')
+            ->join('user_in_rol', 'user_in_rol.user_id = users.id')
+            ->where('user_in_rol.rol_id', '=', 2)
+            ->first();
+
+        if ($nutritionist) {
+            $nutriId = $nutritionist['id'];
+            $pivotExists = \App\Models\NutritionistPatientModel::query()
+                ->where('patient_id', '=', $id)
+                ->where('nutritionist_id', '=', $nutriId)
+                ->first();
+            
+            if (!$pivotExists) {
+                \App\Models\NutritionistPatientModel::create([
+                    'nutritionist_id' => $nutriId,
+                    'patient_id' => $id,
+                    'start_at' => date('Y-m-d H:i:s'),
+                    'status' => 'active'
+                ]);
+            }
+        }
+
+        return $id;
     }
 
     private static function upsert($modelClass, $patientId, $data)

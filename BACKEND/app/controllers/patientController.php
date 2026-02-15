@@ -83,7 +83,8 @@ class patientController extends BaseController
             'password' => 'string',
             'phone' => 'string',
             'id_card' => 'string',
-            'document_type_id' => 'int'
+            'document_type_id' => 'int',
+            'nutritionist_id' => 'int' // New required field
         ];
 
         $result = \Utils\validate_keys::validateTypes($payload, $schema);
@@ -91,6 +92,18 @@ class patientController extends BaseController
         if (!$result['ok']) {
             $this->json(['message' => 'Validación fallida en campos requeridos'], 422);
             return;
+        }
+
+        // Validate nutritionist existence (optional but recommended)
+        $nutritionist = UsersModel::query()
+            ->select('users.id')
+            ->join('user_in_rol', 'user_in_rol.user_id = users.id')
+            ->where('users.id', '=', $payload['nutritionist_id'])
+            ->where('user_in_rol.rol_id', '=', 2) // Assuming 2 is Nutritionist
+            ->first();
+        if (!$nutritionist) {
+             $this->json(['message' => 'Nutricionista no encontrado'], 404);
+             return;
         }
 
         $exists_id = UsersModel::query()
@@ -135,6 +148,14 @@ class patientController extends BaseController
         UserInRolModel::create([
             'user_id' => (int)$userId,
             'rol_id' => 3
+        ]);
+
+        // Link to Nutritionist
+        \App\Models\NutritionistPatientModel::create([
+            'nutritionist_id' => (int)$payload['nutritionist_id'],
+            'patient_id' => (int)$userId,
+            'start_at' => date('Y-m-d H:i:s'),
+            'status' => 'active'
         ]);
 
         $init = $this->initClinicalHistorySingleTables((int)$userId);
@@ -289,6 +310,28 @@ class patientController extends BaseController
 
         UsersModel::update($user['id'], $updates);
 
+        // Sync with NutritionistPatientModel if state changed
+        if (isset($updates['state'])) {
+            $newStatus = ($updates['state'] === 'Activo') ? 'active' : 'inactive';
+            
+            // QueryBuilder update might not support joins directly, so we update by patient_id
+            // Assuming we update ALL relations for this patient (or just the active ones?)
+            // Let's update all relations for this patient where deleted_at is null
+            $relations = \App\Models\NutritionistPatientModel::query()
+                ->where('patient_id', '=', $user['id'])
+                ->get();
+            
+            foreach ($relations as $rel) {
+                 $pivotUpdates = ['status' => $newStatus];
+                 if ($newStatus === 'inactive' && empty($rel['end_at'])) {
+                     $pivotUpdates['end_at'] = date('Y-m-d H:i:s');
+                 } elseif ($newStatus === 'active') {
+                     $pivotUpdates['end_at'] = null; // Clear end_at if reactivated
+                 }
+                 \App\Models\NutritionistPatientModel::update($rel['id'], $pivotUpdates);
+            }
+        }
+
         $this->json(['message' => 'Paciente actualizado correctamente'], 200);
     }
 
@@ -335,6 +378,20 @@ class patientController extends BaseController
         UsersModel::update($user['id'], [
             'deleted_at' => date('Y-m-d H:i:s')
         ]);
+
+        // Sync with NutritionistPatientModel
+        $relations = \App\Models\NutritionistPatientModel::query()
+            ->where('patient_id', '=', $user['id'])
+            ->where('deleted_at', 'IS', null)
+            ->get();
+        
+        foreach ($relations as $rel) {
+            \App\Models\NutritionistPatientModel::update($rel['id'], [
+                'deleted_at' => date('Y-m-d H:i:s'),
+                'status' => 'inactive',
+                'end_at' => date('Y-m-d H:i:s')
+            ]);
+        }
 
         $this->json(['message' => 'Paciente eliminado correctamente'], 200);
     }

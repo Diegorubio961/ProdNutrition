@@ -60,10 +60,36 @@ class MeasureSeeder
             $patientIdCard = $exists['id_card'];
             echo "Patient already exists with ID Card: $patientIdCard\n";
             // Ensure role exists
-             $hasRole = UserInRolModel::query()->where('user_id', '=', $patientId)->where('rol_id', '=', 3)->count();
+             $hasRole = UserInRolModel::query()->where('user_id', '=', $patientId)->where('rol_id', '=', '3')->count();
              if ($hasRole == 0) {
                  UserInRolModel::create(['user_id' => $patientId, 'rol_id' => 3]);
              }
+        }
+
+        // 2. Link to Nutritionist (Pivot)
+        // Find a nutritionist (Role 2)
+        $nutritionist = UsersModel::query()
+            ->select('users.id')
+            ->join('user_in_rol', 'user_in_rol.user_id = users.id')
+            ->where('user_in_rol.rol_id', '=', 2)
+            ->first();
+
+        if ($nutritionist) {
+            $nutriId = $nutritionist['id'];
+            $pivotExists = \App\Models\NutritionistPatientModel::query()
+                ->where('patient_id', '=', $patientId)
+                ->where('nutritionist_id', '=', $nutriId)
+                ->first();
+            
+            if (!$pivotExists) {
+                \App\Models\NutritionistPatientModel::create([
+                    'nutritionist_id' => $nutriId,
+                    'patient_id' => $patientId,
+                    'start_at' => date('Y-m-d H:i:s'),
+                    'status' => 'active'
+                ]);
+                echo "Linked patient to nutritionist ID: $nutriId\n";
+            }
         }
 
         // 3. Insert Measure Data (Hardcoded from ecuaciones.php)
