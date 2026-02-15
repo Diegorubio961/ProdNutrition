@@ -183,7 +183,7 @@ class MeasureController extends BaseController
         $result = \Utils\validate_keys::validateTypes($payload, $requiredSchema);
 
         if (!$result['ok']) {
-            $this->json(['message' => 'Validación fallida en campos requeridos'], 422);
+            $this->json(['message' => $result['message']], 422);
             return;
         }
 
@@ -341,7 +341,7 @@ class MeasureController extends BaseController
         $result = \Utils\validate_keys::validateTypes($payload, $requiredSchema);
 
         if (!$result['ok']) {
-            $this->json(['message' => 'Validación fallida en campos requeridos'], 422);
+            $this->json(['message' => $result['message']], 422);
             return;
         }
 

@@ -21,9 +21,26 @@ class validate_keys
             }
         }
 
+
+
+        $firstErrorKey = array_key_first($errors);
+        $message = '';
+        
+        if ($firstErrorKey) {
+            $errType = $errors[$firstErrorKey];
+            if ($errType === 'missing') {
+                $message = "Falta el campo requerido: $firstErrorKey";
+            } else {
+                // type_string, type_int etc
+                $expected = str_replace('type_', '', $errType);
+                $message = "El campo $firstErrorKey debe ser de tipo $expected";
+            }
+        }
+
         return [
             'ok' => empty($errors),
-            'errors' => $errors
+            'errors' => $errors,
+            'message' => $message
         ];
     }
 

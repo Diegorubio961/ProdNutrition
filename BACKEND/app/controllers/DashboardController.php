@@ -184,10 +184,12 @@ class DashboardController extends BaseController
         $this->json($response, 200);
     }
 
+    # Recientes es agregados desde hace 30 dias hacia la actualidad
     private function getRecentPatients($nutritionistId) {
         $relations = NutritionistPatientModel::query()
             ->where('nutritionist_id', '=', $nutritionistId)
             ->where('status', '=', 'active')
+            ->where('start_at', '>=', date('Y-m-d', strtotime('-30 days')))
             // ->orderBy('start_at', 'DESC') // QueryBuilder might not support orderBy on relation yet, let's sort PHP side if needed or check QB
             ->get();
         

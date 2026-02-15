@@ -162,7 +162,7 @@ class PlanController extends BaseController
             'deleted_at' => date('Y-m-d H:i:s')
         ]);
 
-        $this->json(['ok' => true, 'message' => 'Plan deleted'], 200);
+        $this->json(['message' => 'Plan deleted'], 200);
     }
 
 }
