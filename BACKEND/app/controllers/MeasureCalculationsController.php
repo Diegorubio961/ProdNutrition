@@ -19,20 +19,33 @@ class MeasureCalculationsController extends BaseController
         $request = Request::getInstance();
         $payload = $request->all();
 
-        if (!isset($payload['id_card'])) {
-            $this->json(['message' => 'id_card es requerido'], 422);
+        if (!isset($payload['patient_id'])) {
+            $this->json(['message' => 'patient_id es requerido'], 422);
             return;
         }
 
-        // Find user by id_card
-        $user = \App\Models\UsersModel::query()->where('id_card', '=', $payload['id_card'])->first();
+        // Find user by id (patient_id)
+        $user = \App\Models\UsersModel::query()->where('id', '=', $payload['patient_id'])->first();
         
         if (!$user) {
-            $this->json(['message' => 'Paciente no encontrado con el id_card proporcionado'], 404);
+            $this->json(['message' => 'Paciente no encontrado con el ID proporcionado'], 404);
             return;
         }
 
         $patientId = $user['id'];
+
+        // Verify if user is Admin (1) or Patient (3)
+        $roleRecord = \App\Models\UserInRolModel::query()
+            ->where('user_id', '=', $patientId)
+            ->first();
+
+        $rolId = isset($roleRecord['rol_id']) ? (int)$roleRecord['rol_id'] : 0;
+        
+        // Allow Admin (1) or Patient (3)
+        if ($rolId !== 1 && $rolId !== 3) {
+             $this->json(['message' => 'El usuario no tiene permisos para realizar esta acción (Rol no válido)'], 403);
+             return;
+        }
 
         // 1. Fetch Data
         // 1. Fetch Data
@@ -145,15 +158,28 @@ class MeasureCalculationsController extends BaseController
         // ---------------- CALCULATIONS ----------------
         $results = [];
 
+        // General Variables
+        $talla_m = $talla_cm / 100;
+        $talla_m_sq = ($talla_m > 0) ? ($talla_m ** 2) : 1;
+        $imc = ($talla_cm > 0) ? ($peso_kg / $talla_m_sq) : 0;
+
         // --- IAKS ---
         $aks = 0;
         $clasificacion_aks = "";
         $mca_aks = 0;
 
+        // Calculate PyB unconditionally (Penroe, Nelson & Fisher)
+        $porcentaje_grasa_pyb = round((2.745 + (0.0008 * $pliegue_triceps) + (0.002 * $pliegue_subescapular) + (0.637 * $pliegue_suprailiaco) + (0.809 * $pliegue_biceps)), 2);
+        $kg_grasa_pyb = round((($porcentaje_grasa_pyb * $peso_kg) / 100), 2);
+        $mca_pyb = round(($peso_kg - $kg_grasa_pyb), 2);
+
+        $porcentaje_grasa_dyr = 0;
+        $kg_grasa_dyr = 0;
+        $mca_dyr = 0;
+
         if ($sexo == "M") {
-            $porcentaje_grasa_pyb = round((2.745 + (0.0008 * $pliegue_triceps) + (0.002 * $pliegue_subescapular) + (0.637 * $pliegue_suprailiaco) + (0.809 * $pliegue_biceps)), 2);
-            $kg_grasa_pyb = round((($porcentaje_grasa_pyb * $peso_kg) / 100), 2);
-            $mca_aks = round(($peso_kg - $kg_grasa_pyb), 2);
+            $mca_aks = $mca_pyb;
+            
             $talla_pow_3 = ($talla_cm > 0) ? ($talla_cm ** 3) : 1;
             $aks = round((($mca_aks * 100000) / $talla_pow_3), 2);
             $clasificacion_aks = ($aks >= 1.01) ? "Adecuado" : (($aks < 1.01) ? "Deficiente" : (($aks > 1.55) ? "Muy Buena" : ""));
@@ -164,7 +190,9 @@ class MeasureCalculationsController extends BaseController
              $densidad_corporal = ($sum_pliegues_log > 0) ? (1.1581 - (0.072 * log10($sum_pliegues_log))) : 0;
              $porcentaje_grasa_dyr = ($densidad_corporal > 0) ? (((4.95 / $densidad_corporal) - 4.5) * 100) : 0;
              $kg_grasa_dyr = (($porcentaje_grasa_dyr * $peso_kg) / 100);
-             $mca_aks = ($peso_kg - $kg_grasa_dyr);
+             $mca_dyr = ($peso_kg - $kg_grasa_dyr);
+             $mca_aks = $mca_dyr; // This is mca_dyr
+             
              $talla_pow_3 = ($talla_cm > 0) ? ($talla_cm ** 3) : 1;
              $aks = ($mca_aks * 100000) / $talla_pow_3;
              $clasificacion_aks = ($aks >= 0.93) ? "Adecuado" : (($aks < 0.93) ? "Deficiente" : (($aks > 1.24) ? "Muy Buena" : ""));
@@ -173,9 +201,7 @@ class MeasureCalculationsController extends BaseController
         }
 
         // Fat Free Mass Index
-        $talla_m = $talla_cm / 100;
-        $talla_m_sq = ($talla_m > 0) ? ($talla_m ** 2) : 1;
-        $indice_masa_magra = round(($mca_aks / $talla_m_sq), 1);
+        $indice_masa_magra = round(($mca_pyb / $talla_m_sq), 1);
         $interpretacion_ffmi = "";
         
         if ($sexo == "M") {
@@ -184,41 +210,90 @@ class MeasureCalculationsController extends BaseController
              $interpretacion_ffmi = (($indice_masa_magra < 14.6) ? "BAJO" : (($indice_masa_magra < 16.8) ? "ADECUADO" : (($indice_masa_magra > 16.8) ? "MUY BUENO" : "")));
         }
 
+        // $results['generals'] = [
+        //     'imc' => $imc,
+        //     'mca_pyb' => $mca_pyb,
+        //     'porcentaje_grasa_pyb' => $porcentaje_grasa_pyb,
+        //     'kg_grasa_pyb' => $kg_grasa_pyb,
+        //     'aks' => $aks,
+        //     'clasificacion_aks' => $clasificacion_aks, // Also general? IAKS is general indicators?
+        //     'indice_masa_magra' => $indice_masa_magra,
+        //     'interpretacion_ffmi' => $interpretacion_ffmi,
+        //     'densidad_corporal' => $densidad_corporal,
+        // ];
+        
+        // if ($sexo != 'M') {
+        //     $results['generals']['mca_dyr'] = $mca_dyr;
+        //     $results['generals']['porcentaje_grasa_dyr'] = $porcentaje_grasa_dyr;
+        //     $results['generals']['kg_grasa_dyr'] = $kg_grasa_dyr;
+        // }
+
         // IAKS (or General Indicators) Group? 
-        // User asked for 5 groups: Yuhasz, 5 Componentes, J&P, Slaughter, Durning.
-        // IAKS seems to be part of the general output in 'ecuaciones.php'. 
-        // I'll add IAKS as its own group or merge if appropriate. 
-        // The image usually shows IAKS as a separate section or part of "Medidas".
-        // I will return it as "IAKS".
+        // Keeping IAKS group as per previous request, but maybe user wants it merged?
+        // User asked for "another key called generals". I'll keep IAKS separately if needed or just alias it.
+        // I'll keep IAKS group as duplicate/specific for now to avoid breaking anything if UI expects IAKS.
         
         $iaks_results = [
             'aks' => $aks,
             'clasificacion' => $clasificacion_aks,
             'indice_masa_magra' => $indice_masa_magra,
             'interpretacion_ffmi' => $interpretacion_ffmi,
-            'porcentaje_grasa' => $porcentaje_grasa_iaks,
-            'grasa_kg' => $kg_grasa_iaks,
         ];
 
-        if ($sexo == "M") {
-            $iaks_results['mca_pyb'] = $mca_aks;
-        } else {
-            $iaks_results['mca_dyr'] = $mca_aks;
-        }
+        // if ($sexo != "M") {
+        //     $iaks_results['mca_dyr'] = $mca_aks;
+        // }
 
         $results['IAKS'] = $iaks_results;
 
 
         // --- YUHASZ ---
-        $imc = ($talla_cm == 0) ? " " : ($peso_kg / $talla_m_sq);
+        // $imc is already calculated globally
+        // $talla_m_sq is already calculated globally
+
         $suma_yuhasz = ($pliegue_triceps + $pliegue_subescapular + $pliegue_supraespinal + $pliegue_abdominal + $pliegue_muslo + $pliegue_pierna);
         $suma_yuhasz_mas_biceps_7_pliegues = ($pliegue_triceps + $pliegue_subescapular + $pliegue_biceps + $pliegue_supraespinal + $pliegue_abdominal + $pliegue_muslo + $pliegue_pierna);
         
-        $porcentaje_grasa_final = 0;
+        $clasificacion_yuhasz = "";
+
         if ($sexo == "M") {
             $porcentaje_grasa_final = ($suma_yuhasz * 0.1051) + 2.585;
+
+            // Classification Table Logic (Men)
+            if ($porcentaje_grasa_final <= 5.0) {
+                $clasificacion_yuhasz = "Muy Delgado";
+            } elseif ($porcentaje_grasa_final <= 6.5) {
+                $clasificacion_yuhasz = "Delgado";
+            } elseif ($porcentaje_grasa_final <= 8.0) {
+                $clasificacion_yuhasz = "Ideal";
+            } elseif ($porcentaje_grasa_final <= 9.5) {
+                $clasificacion_yuhasz = "Promedio";
+            } elseif ($porcentaje_grasa_final <= 11.0) {
+                $clasificacion_yuhasz = "Leve alto";
+            } elseif ($porcentaje_grasa_final <= 12.5) {
+                $clasificacion_yuhasz = "Alto";
+            } else {
+                $clasificacion_yuhasz = "Muy alto - Obesidad";
+            }
         } else {
             $porcentaje_grasa_final = ($suma_yuhasz * 0.1548) + 3.5803;
+
+            // Classification Table Logic (Women)
+            if ($porcentaje_grasa_final <= 8.3) {
+                $clasificacion_yuhasz = "Muy Delgado";
+            } elseif ($porcentaje_grasa_final <= 11.9) {
+                $clasificacion_yuhasz = "Delgado";
+            } elseif ($porcentaje_grasa_final <= 15.5) {
+                $clasificacion_yuhasz = "Ideal";
+            } elseif ($porcentaje_grasa_final <= 19.1) {
+                $clasificacion_yuhasz = "Promedio";
+            } elseif ($porcentaje_grasa_final <= 22.6) {
+                $clasificacion_yuhasz = "Leve alto";
+            } elseif ($porcentaje_grasa_final <= 26.2) {
+                $clasificacion_yuhasz = "Alto";
+            } else {
+                $clasificacion_yuhasz = "Muy alto - Obesidad";
+            }
         }
 
         $grasa_kg = ($peso_kg * $porcentaje_grasa_final) / 100;
@@ -229,14 +304,15 @@ class MeasureCalculationsController extends BaseController
         $results['Yuhasz'] = [
             'imc' => $imc,
             'porcentaje_grasa' => $porcentaje_grasa_final, // Consolidated
+            'clasificacion' => $clasificacion_yuhasz,
             'grasa_kg' => $grasa_kg,
             'mlg_kg' => $mlg_kg,
             'porcentaje_grasa_adecuado' => $porcentaje_grasa_adecuado,
             'mca' => $mca,
             'kg_a_perder' => $kg_a_perder,
-            'suma_6_pliegues' => $suma_yuhasz,
+            'suma_yuhasz' => $suma_yuhasz,
             'suma_7_pliegues' => $suma_yuhasz_mas_biceps_7_pliegues,
-            'iaks' => $aks // "iaks_mujeres/hombres" in code
+            'iaks' => $aks, // "iaks_mujeres/hombres" in code
         ];
 
 

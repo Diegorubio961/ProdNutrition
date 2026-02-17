@@ -5,6 +5,7 @@ require_once __DIR__ . '/InsertDocumentsTypes.php';
 require_once __DIR__ . '/InsertAdminUsers.php';
 require_once __DIR__ . '/MeasureSeeder.php';
 require_once __DIR__ . '/MeasureNullSeeder.php';
+require_once __DIR__ . '/MeasureCalculationsExampleSeeder.php';
 
 use Core\Database;
 
@@ -28,6 +29,9 @@ class MasterSeeder
 
         echo "\nRunning MeasureNullSeeder...\n";
         MeasureNullSeeder::run();
+
+        echo "\nRunning MeasureCalculationsExampleSeeder...\n";
+        MeasureCalculationsExampleSeeder::run();
 
         echo "\nAll seeders completed successfully.\n";
     }
