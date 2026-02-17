@@ -420,14 +420,14 @@ class MeasureCalculationsController extends BaseController
         $sumatoria_7_pliegues_jyp = $pliegue_triceps + $pliegue_subescapular + $pliegue_biceps + $pliegue_supraespinal + $pliegue_abdominal + $pliegue_muslo + $pliegue_pierna;
 
         $results['J_P'] = [
-            'imc' => $imc,
             'porcentaje_grasa' => $porcentaje_grasa_final_jyp, // Consolidated
             'grasa_kg' => $grasa_kg_jyp,
             'mlg_kg' => $mlg_jyp_kg,
             'mca' => $mca_jyp,
             'kg_a_perder' => $kg_a_perder_jyp,
             'clasificacion' => $clasificacion_jyp,
-            'sumatoria_7_pliegues' => $sumatoria_7_pliegues_jyp
+            'sumatoria_7_pliegues' => $sumatoria_7_pliegues_jyp,
+            'porcentaje_grasa_adecuado' => $porcentaje_grasa_adecuado_jyp 
         ];
 
 
@@ -452,7 +452,6 @@ class MeasureCalculationsController extends BaseController
         }
 
         $results['Slaughter'] = [
-            'imc' => $imc,
             'mlg_kg' => $mlg_sla,
             'grasa_kg' => $grasa_kg_sla,
             'porcentaje_grasa' => $porcentaje_grasa_final_sla,
@@ -500,10 +499,11 @@ class MeasureCalculationsController extends BaseController
             'mlg_kg' => $mlg_dur,
             'mca' => $mca_dur,
             'kg_perder' => $kg_perder_dur,
-            'imc' => $imc,
+            // 'imc' => $imc,
             'clasificacion' => $clasificacion_dur,
             'sumatoria_4_pliegues' => $sumatoria_4_pliegues,
-            'sumatoria_7_pliegues' => $sumatoria_7_pliegues_dur
+            'sumatoria_7_pliegues' => $sumatoria_7_pliegues_dur,
+            'porcentaje_grasa_adecuado' => $porcentaje_grasa_adecuado_dur
         ];
 
         // --- SOMATOTIPO (User asked for 5 groups, but Somatotipo often goes with them) ---

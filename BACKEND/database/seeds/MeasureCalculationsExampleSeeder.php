@@ -185,7 +185,7 @@ class MeasureCalculationsExampleSeeder
         $measureAdditional = [
             'patient_id' => $patientId,
             'ideal_fat_percentage' => 0,
-            'ideal_fat_percentage_jyp' => 0,
+            'ideal_fat_percentage_jyp' => 153,
             'ideal_fat_percentage_durning' => 0,
             'height_age_sd' => 0,
             'bmi_age_sd' => 0,
