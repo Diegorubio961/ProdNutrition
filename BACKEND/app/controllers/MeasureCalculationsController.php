@@ -355,11 +355,11 @@ class MeasureCalculationsController extends BaseController
         $peso_estructurado_kg = $masa_piel_kg + $masa_adiposa_kg + $masa_muscular_kg + $masa_residual_kg + $masa_osea_total_kg;
         $diferencia_pe_peso_bruto = $peso_estructurado_kg - $peso_kg;
         
-        $piel_porcentaje = ($peso_estructurado_kg > 0) ? $masa_piel_kg / $peso_estructurado_kg : 0;
-        $adiposa_porcentaje = ($peso_estructurado_kg > 0) ? $masa_adiposa_kg / $peso_estructurado_kg : 0;
-        $muscular_porcentaje = ($peso_estructurado_kg > 0) ? $masa_muscular_kg / $peso_estructurado_kg : 0;
-        $residual_porcentaje = ($peso_estructurado_kg > 0) ? $masa_residual_kg / $peso_estructurado_kg : 0;
-        $osea_porcentaje = ($peso_estructurado_kg > 0) ? $masa_osea_total_kg / $peso_estructurado_kg : 0;
+        $piel_porcentaje = ($peso_estructurado_kg != 0) ? $masa_piel_kg / $peso_estructurado_kg : 0;
+        $adiposa_porcentaje = ($peso_estructurado_kg != 0) ? $masa_adiposa_kg / $peso_estructurado_kg : 0;
+        $muscular_porcentaje = ($peso_estructurado_kg != 0) ? $masa_muscular_kg / $peso_estructurado_kg : 0;
+        $residual_porcentaje = ($peso_estructurado_kg != 0) ? $masa_residual_kg / $peso_estructurado_kg : 0;
+        $osea_porcentaje = ($peso_estructurado_kg != 0) ? $masa_osea_total_kg / $peso_estructurado_kg : 0;
         
         $ajustes_masa_piel = $diferencia_pe_peso_bruto * $piel_porcentaje;
         $ajuste_adiposa = $diferencia_pe_peso_bruto * $adiposa_porcentaje;
@@ -374,43 +374,6 @@ class MeasureCalculationsController extends BaseController
         $masa_piel_kg_final = $masa_piel_kg - $ajustes_masa_piel;
         $total_masa_kg = $masa_piel_kg_final + $masa_total_adiposa_kg_final + $masa_total_muscular_kg_final + $masa_residual_kg_final + $masa_osea_kg_final;
 
-        $results['vars_components'] = [
-            'constante_masa_piel' => $constante_masa_piel,
-            'grosor_piel' => $grosor_piel,
-            'suma_diametros_masa_osea' => $suma_diametros_masa_osea,
-            'scale_factor' => $scale_factor,
-            'score_z_oseo_cuerpo' => $score_z_oseo_cuerpo,
-            'masa_osea_cuerpo_kg' => $masa_osea_cuerpo_kg,
-            'score_z_cabeza' => $score_z_cabeza,
-            'masa_osea_cabeza_kg' => $masa_osea_cabeza_kg,
-            'masa_osea_total_kg' => $masa_osea_total_kg,
-            'perimetro_brazo_corregido' => $perimetro_brazo_corregido,
-            'perimetro_antebrazo' => $perimetro_antebrazo,
-            'perimetro_muslo_corregido' => $perimetro_muslo_corregido,
-            'perimetro_pantorrilla_corregido' => $perimetro_pantorrilla_corregido,
-            'perimetro_torax_corregido' => $perimetro_torax_corregido,
-            'suma_perimetros_corregidos' => $suma_perimetros_corregidos,
-            'score_z_muscular' => $score_z_muscular,
-            'masa_muscular_kg' => $masa_muscular_kg,
-            'perimetro_cintura_corregido' => $perimetro_cintura_corregido,
-            'suma_torax' => $suma_torax,
-            'scale_factor_sentado' => $scale_factor_sentado,
-            'score_z_residual' => $score_z_residual,
-            'masa_residual_kg' => $masa_residual_kg,
-            'sumatoria_seis_pliegues' => $sumatoria_seis_pliegues,
-            'score_z_adiposa' => $score_z_adiposa,
-            'masa_adiposa_kg' => $masa_adiposa_kg,
-            'area_superficial' => $area_superficial,
-            'masa_piel_kg' => $masa_piel_kg,
-            'peso_estructurado_kg' => $peso_estructurado_kg,
-            'diferencia_pe_peso_bruto' => $diferencia_pe_peso_bruto,
-            'ajustes_masa_piel' => $ajustes_masa_piel,
-            'ajuste_adiposa' => $ajuste_adiposa,
-            'ajustes_masa_muscular' => $ajustes_masa_muscular,
-            'ajustes_masa_residual' => $ajustes_masa_residual,
-            'ajustes_masa_osea' => $ajustes_masa_osea,
-        ];
-
         $results['5_Componentes'] = [
             'masa_piel_kg' => $masa_piel_kg_final,
             'masa_adiposa_kg' => $masa_total_adiposa_kg_final,
@@ -423,8 +386,10 @@ class MeasureCalculationsController extends BaseController
             'osea_porcentaje' => $osea_porcentaje * 100,
             'piel_porcentaje' => $piel_porcentaje * 100,
             'residual_porcentaje' => $residual_porcentaje * 100,
+            // Suma de todos los porcentajes
+            'porcentaje_total' => ($adiposa_porcentaje + $muscular_porcentaje + $osea_porcentaje + $piel_porcentaje + $residual_porcentaje) * 100,
+            'porcentaje_fraccion_lipidica' => (0.327 + 0.0124 * $adiposa_porcentaje) * 100,
         ];
-
 
         // --- J&P ---
         $sum_3_pliegues_F = $pliegue_triceps + $pliegue_supraespinal + $pliegue_muslo;
