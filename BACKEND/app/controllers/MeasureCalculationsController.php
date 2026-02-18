@@ -517,13 +517,92 @@ class MeasureCalculationsController extends BaseController
         $x = $ecto - $endo;
         $y = 2 * $meso - ($endo + $ecto);
 
+        // s6pi is sum of 6 folds: triceps + subscap + suprailiac + abdominal + thigh + calf? 
+        // Wait, ecuaciones.php line 454: $s6pi = $pliegue_triceps + $pliegue_subescapular + $pliegue_supraespinal + $pliegue_abdominal + $pliegue_muslo + $pliegue_pierna;
+        // This is exactly $suma_yuhasz. Let's reuse it or recalculate for clarity. Recalculate is safer if code moves.
+        $s6pl = $pliegue_triceps + $pliegue_subescapular + $pliegue_supraespinal + $pliegue_abdominal + $pliegue_muslo + $pliegue_pierna;
+
         $results['Somatotipo'] = [
+             's6pl' => $s6pl,
+             'imc' => $imc,
+             's3plieg' => $s3plieg,
+             'hwr' => $hwr,
              'endo' => $endo,
              'meso' => $meso,
              'ecto' => $ecto,
              'x' => $x,
              'y' => $y,
-             'imc' => $imc
+        ];
+
+        // --- PROPORCIONALIDAD ---
+        $porcentaje_envergadura_relativa = ($talla_cm != 0) ? ($envergadura_cm / $talla_cm * 100) : 0;
+        $clasificacion_envergadura = ($porcentaje_envergadura_relativa >= 100) ? "Mayor" : (($porcentaje_envergadura_relativa < 100) ? "Menor" : (($porcentaje_envergadura_relativa == 100) ? "Igual" : ""));
+        
+        $T_E = 0; // Placeholder as in equations
+        $clasificacion_t_e = ($T_E >= -1) ? "Talla adecuada para la edad" : (($T_E < -2) ? "Talla baja para la edad" : ((($T_E >= -2) && ($T_E < -1)) ? "Riesgo de retraso en talla" : ""));
+        
+        $imc_e = 0; // Placeholder as in equations
+        $clasificacion_imc_e = ($imc_e > 2) ? "Obesidad" : (($imc_e < -2) ? "Delgadez" : ((($imc_e > 1) && ($imc_e <= 2)) ? "Sobrepeso" : ((($imc_e >= -1) && ($imc_e <= 1)) ? "Adecuado" : ((($imc_e >= -2) && ($imc_e < -1)) ? "Riesgo Delgadez" : ""))));
+        
+        $indice_cormico = ($talla_cm > 0) ? ($talla_sentado_corregida_cm / $talla_cm) * 100 : 0;
+        $clasificacion_indice_cormico = (($sexo === "F") && ($indice_cormico <= 52)) ? "Braquicormico" : ((($sexo === "M") && ($indice_cormico <= 51)) ? "Braquicormico" : ((($sexo === "F") && ($indice_cormico > 52) && ($indice_cormico <= 54)) ? "Metrocormico" : ((($sexo === "M") && ($indice_cormico > 51) && ($indice_cormico <= 53)) ? "Metrocormico" : ((($sexo === "F") && ($indice_cormico > 54)) ? "Macrocormico" : ((($sexo === "M") && ($indice_cormico > 53)) ? "Macrocormico" : "")))));
+        
+        $irmi = ($talla_sentado_corregida_cm > 0) ? (($talla_cm - $talla_sentado_corregida_cm) / $talla_sentado_corregida_cm) * 100 : 0;
+        $clasificacion_irmi = ($irmi < 84.9) ? "Braquiesquelico" : ((($irmi >= 85) && ($irmi <= 89.9)) ? "Metroesquelico" : (($irmi > 89.9) ? "Macroesquelico" : ""));
+        
+        $lres = ($talla_cm > 0) ? (($longitud_acromial_radial + $longitud_radial_estiloidea + $longitud_medial_estiloidea_dactilar) / $talla_cm) * 100 : 0;
+        $clasificacion_lres = ($lres < 45) ? "Braquibraquial" : ((($lres >= 45) && ($lres < 47)) ? "Metrobraquial" : (($lres >= 47) ? "Macrobraquial" : ""));
+        
+        $indice_muslo_oseo = ($masa_osea_kg_final != 0) ? ($masa_total_muscular_kg_final / $masa_osea_kg_final) : 0;
+        $clasificacion_imo = (($sexo === "F") && ($indice_muslo_oseo <= 2.9)) ? "Desnutricion Calorico Proteica" : ((($sexo === "M") && ($indice_muslo_oseo <= 3.7)) ? "Desnutricion Calorico Proteica" : ((($sexo === "F") && ($indice_muslo_oseo >= 3) && ($indice_muslo_oseo <= 4.2)) ? "Normal" : ((($sexo === "M") && ($indice_muslo_oseo >= 3.8) && ($indice_muslo_oseo <= 4.9)) ? "Normal" : ((($sexo === "F") && ($indice_muslo_oseo > 4.3)) ? "Alterado" : ((($sexo === "M") && ($indice_muslo_oseo > 5)) ? "Alterado" : "")))));
+
+        $results['Proporcionalidad'] = [
+            'porcentaje_envergadura_relativa' => $porcentaje_envergadura_relativa,
+            'clasificacion_envergadura' => $clasificacion_envergadura,
+            'indice_cormico' => $indice_cormico,
+            'clasificacion_indice_cormico' => $clasificacion_indice_cormico,
+            'irmi' => $irmi,
+            'clasificacion_irmi' => $clasificacion_irmi,
+            'lres' => $lres,
+            'clasificacion_lres' => $clasificacion_lres,
+            'indice_muslo_oseo' => $indice_muslo_oseo,
+            'clasificacion_imo' => $clasificacion_imo
+        ];
+
+        // --- MADURACION ---
+        $long_piernas = $talla_cm - $talla_sentado_corregida_cm;
+        $i_cormico_mad = ($talla_cm > 0) ? ($talla_sentado_corregida_cm / $talla_cm) * 100 : 0; // Rename to avoid conflict if any, though scope is safe
+        $imc_maduracion = ($talla_cm > 0) ? $peso_kg / (($talla_cm/100) ** 2) : 0;
+        
+        $indice_maduracion = ($sexo == "M") ? 
+            (-9.236 + (0.0002708 * $long_piernas * $talla_sentado_corregida_cm) - (0.001663 * $edad * $long_piernas) + (0.007216 * $edad * $talla_sentado_corregida_cm) + (0.02292 * ($peso_kg / (($talla_cm > 0) ? ($talla_cm / 100) : 1)))) : 
+            (-9.376 + (0.0001882 * $long_piernas * $talla_sentado_corregida_cm) + (0.0022 * $edad * $long_piernas) + (0.005841 * $edad * $talla_sentado_corregida_cm) - (0.002658 * $edad * $peso_kg) + (0.07693 * ($peso_kg / (($talla_cm > 0) ? ($talla_cm / 100) : 1))));
+            
+        $edad_phv = $edad - $indice_maduracion;
+        $clasificacion_maduracion = ($edad_phv < 13) ? "TEMP" : (($edad_phv < 15) ? "NORM" : "TARD");
+        $falta_cm = (float)($additional['growth_remaining_cm'] ?? 0);
+        $est_adult_est = $talla_cm + $falta_cm;
+
+        $results['Maduracion'] = [
+            'indice_maduracion' => $indice_maduracion,
+            'edad_phv' => $edad_phv,
+            'clasificacion_maduracion' => $clasificacion_maduracion,
+            'est_adult_est' => $est_adult_est,
+            'falta_cm' => $falta_cm
+        ];
+
+        // --- COMPOSICION CORPORAL (Called MADURACION 2 in prompt likely) ---
+        $icc = ($perimetro_cadera > 0) ? $perimetro_cintura / $perimetro_cadera : 0;
+        $riesgo = ($icc == 0) ? " " : (($sexo == "M") ? (($edad < 20) ? "N/A" : (($edad < 30) ? (($icc < 0.83) ? "Bajo" : (($icc < 0.89) ? "Moderado" : (($icc <= 0.94) ? "Alto" : "Muy alto"))) : (($edad < 40) ? (($icc < 0.84) ? "Bajo" : (($icc < 0.92) ? "Moderado" : (($icc <= 0.96) ? "Alto" : "Muy alto"))) : (($edad < 50) ? (($icc < 0.88) ? "Bajo" : (($icc < 0.96) ? "Moderado" : (($icc <= 1) ? "Alto" : "Muy alto"))) : (($edad < 60) ? (($icc < 0.9) ? "Bajo" : (($icc < 0.97) ? "Moderado" : (($icc <= 1.02) ? "Alto" : "Muy alto"))) : (($edad < 70) ? (($icc < 0.91) ? "Bajo" : (($icc < 0.99) ? "Moderado" : (($icc <= 1.03) ? "Alto" : "Muy alto"))) : (($edad >= 70) ? "N/A" : "N/A"))))))) : (($sexo == "F") ? (($edad < 20) ? "N/A" : (($edad < 30) ? (($icc < 0.71) ? "Bajo" : (($icc < 0.78) ? "Moderado" : (($icc <= 0.82) ? "Alto" : "Muy alto"))) : (($edad < 40) ? (($icc < 0.72) ? "Bajo" : (($icc < 0.79) ? "Moderado" : (($icc <= 0.84) ? "Alto" : "Muy alto"))) : (($edad < 50) ? (($icc < 0.73) ? "Bajo" : (($icc < 0.8) ? "Moderado" : (($icc <= 0.87) ? "Alto" : "Muy alto"))) : (($edad < 60) ? (($icc < 0.74) ? "Bajo" : (($icc < 0.82) ? "Moderado" : (($icc <= 0.88) ? "Alto" : "Muy alto"))) : (($edad < 70) ? (($icc < 0.76) ? "Bajo" : (($icc < 0.84) ? "Moderado" : (($icc <= 0.9) ? "Alto" : "Muy alto"))) : (($edad >= 70) ? "N/A" : "N/A"))))))) : null));
+        
+        $complexion = ($perimetro_muneca > 0) ? $talla_cm / $perimetro_muneca : 0;
+        $clasificacion_complexion = ($complexion == 0) ? " " : (($sexo == "M") ? (($complexion > 10.39) ? "Pequeña" : (($complexion > 9.59) ? "Mediana" : (($complexion < 9.6) ? "Recia" : null))) : (($sexo == "F") ? (($complexion > 10.99) ? "Pequeña" : (($complexion > 10.09) ? "Mediana" : (($complexion < 10.1) ? "Recia" : null))) : null));
+
+        $results['Composicion_Corporal'] = [
+            'icc' => $icc,
+            'riesgo' => $riesgo,
+            'complexion' => $complexion,
+            'clasificacion_complexion' => $clasificacion_complexion
         ];
 
         $results = $this->formatResponse($results);

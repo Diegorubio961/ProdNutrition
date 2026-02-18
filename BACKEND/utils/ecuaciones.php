@@ -522,7 +522,7 @@ $long_piernas = $talla_cm - $talla_sentado_cm;
 $i_cormico = $talla_sentado_cm / $talla_cm;
 $imc_maduracion = $peso_kg / ($talla_cm/100) ** 2;
 $indice_maduracion = ($sexo == "M") ? (-9.236 + (0.0002708 * $long_piernas * $talla_sentado_cm) - (0.001663 * $edad * $long_piernas) + (0.007216 * $edad * $talla_sentado_cm) + (0.02292 * $peso_kg / ($talla_cm / 100))) : (-9.376 + (0.0001882 * $long_piernas * $talla_sentado_cm) + (0.0022 * $edad * $long_piernas) + (0.005841 * $edad * $talla_sentado_cm) - (0.002658 * $edad * $peso_kg) + (0.07693 * $peso_kg / ($talla_cm / 100)));
-$edad_phv = $edad + $indice_maduracion;
+$edad_phv = $edad - $indice_maduracion;
 $clasificacion_maduracion = ($edad_phv < 13) ? "TEMP" : (($edad_phv < 15) ? "NORM" : "TARD");
 $falta_cm = 0;
 $est_adult_est = $talla_cm + $falta_cm;
