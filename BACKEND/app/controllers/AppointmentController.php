@@ -35,7 +35,7 @@ class AppointmentController extends BaseController
             'duration_minutes' => 'int'
         ];
 
-        $result = validate_keys::validateTypes($payload, $schema);
+        $result = \Utils\validate_keys::validateTypes($payload, $schema);
 
         if (!$result['ok']) {
             $this->json(['error' => 'Validation failed', 'details' => $result['errors']], 422);
