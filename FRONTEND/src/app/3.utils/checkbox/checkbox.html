@@ -1,0 +1,31 @@
+<div 
+  class="checkbox-wrapper"
+  [class.disabled]="config.disabled"
+  [ngClass]="{
+    'type-switch': config.type === 'switch',
+    'type-checkbox': !config.type || config.type === 'checkbox',
+    'color-primary': !config.color || config.color === 'primary',
+    'color-secondary': config.color === 'secondary',
+    'pos-after': !config.labelPosition || config.labelPosition === 'after',
+    'pos-before': config.labelPosition === 'before',
+    'pos-top': config.labelPosition === 'top',
+    'pos-bottom': config.labelPosition === 'bottom'
+  }"
+  (click)="toggle($event)"
+>
+
+  <input type="checkbox" [checked]="checked" [disabled]="config.disabled" hidden>
+
+  <div *ngIf="!config.type || config.type === 'checkbox'" class="visual-checkbox" [class.checked]="checked">
+    <span class="checkmark-icon"></span>
+  </div>
+
+  <div *ngIf="config.type === 'switch'" class="visual-switch" [class.checked]="checked">
+    <div class="switch-thumb"></div>
+  </div>
+
+  <span *ngIf="config.label" class="label-text">
+    {{ config.label }}
+  </span>
+
+</div>

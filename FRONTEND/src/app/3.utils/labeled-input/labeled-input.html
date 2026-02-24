@@ -1,0 +1,60 @@
+
+<div class="input-container" [style.opacity]="config.disabled ? '0.6' : '1'">
+  
+  <label *ngIf="config.label" [for]="config.id" class="input-label">
+    {{ config.label }}
+    <span *ngIf="config.required" class="required">*</span>
+  </label>
+
+  <div class="input-wrapper">
+    
+    <i *ngIf="config.leftIcon" [class]="config.leftIcon + ' left-icon'"></i>
+
+    <input
+      [id]="config.id || ''"
+      [type]="currentType" 
+      [placeholder]="config.placeholder || ''"
+      
+      [disabled]="config.disabled || false"
+      [readonly]="config.readonly || false"
+      [autocomplete]="config.autocomplete || 'off'"
+      [autofocus]="config.autofocus || false"
+      
+      [attr.minlength]="config.minCharacters || null"
+      [attr.maxlength]="config.maxCharacters || null"
+      [attr.min]="config.min || null"
+      [attr.max]="config.max || null"
+      
+      [ngModel]="value"
+      (ngModelChange)="onInputChange($event)"
+      (keyup.enter)="handleEnter()"
+      
+      class="custom-input"
+      [class.has-left-icon]="config.leftIcon"
+      [class.has-right-icon]="config.rightIcon || config.type === 'password'"
+      [class.has-error]="config.errorMessage"
+    >
+
+    <div class="right-icon-container">
+      
+      <span *ngIf="config.isLoading" class="spinner"></span> 
+      
+      <i *ngIf="!config.isLoading && config.rightIcon && config.type !== 'password'" 
+         [class]="config.rightIcon">
+      </i>
+
+      <i *ngIf="!config.isLoading && config.type === 'password'"
+         class="password-toggle-icon"
+         (click)="togglePassword()"
+         [class]="currentType === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash'">
+         </i>
+
+    </div>
+
+  </div>
+
+  <div *ngIf="config.errorMessage" class="error-message">
+    {{ config.errorMessage }}
+  </div>
+
+</div>

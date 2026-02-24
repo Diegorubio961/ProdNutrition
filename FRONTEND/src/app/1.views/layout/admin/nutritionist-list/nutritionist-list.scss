@@ -1,0 +1,11 @@
+.custom-actions-container {
+    height: 10%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.custom-actions-container > .search-box {
+    width: 500px;    
+} 

@@ -1,0 +1,265 @@
+// /* --- Variables --- */
+// $color-primary: #341555;
+// $color-primary-hover: #4a237a;
+// $color-text-white: #ffffff;
+// $color-disabled-bg: #E0E0E0;
+// $color-disabled-text: #A09BAF;
+// $border-radius: 10px;
+
+// /* NUEVA VARIABLE: Para que coincida con la altura de tus Inputs */
+// $button-height: 50px; 
+
+// .custom-button {
+//   /* --- DIMENSIONES --- */
+//   width: 100%;          /* Ancho: Depende del padre */
+//   height: $button-height; /* Alto: Fijo (50px) */
+//   box-sizing: border-box; /* Asegura que el padding no rompa el ancho del 100% */
+  
+//   /* Eliminamos el padding vertical porque usaremos Flexbox para centrar.
+//      Mantenemos padding horizontal para que el texto no toque los bordes si es muy largo */
+//   padding: 0 24px;
+  
+//   border: none;
+//   border-radius: $border-radius;
+  
+//   /* --- TIPOGRAFÍA Y COLOR --- */
+//   background-color: $color-primary;
+//   color: $color-text-white;
+//   font-family: 'Lato', sans-serif;
+//   font-size: 1rem;
+//   font-weight: 700;
+  
+//   /* --- COMPORTAMIENTO Y FLEX --- */
+//   cursor: pointer;
+//   transition: all 0.3s ease;
+//   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15);
+  
+//   /* Centrado perfecto del contenido (Texto/Iconos) */
+//   display: flex;
+//   justify-content: center;
+//   align-items: center; 
+//   position: relative;
+
+//   /* --- ESTADOS (Hover, Active, Disabled, Loading) --- */
+  
+//   &:hover:not(:disabled):not(.is-loading) {
+//     background-color: $color-primary-hover;
+//     box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);
+//     transform: translateY(-1px);
+//   }
+
+//   &:active:not(:disabled):not(.is-loading) {
+//     transform: translateY(0px);
+//     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+//   }
+
+//   &:disabled {
+//     background-color: $color-disabled-bg;
+//     color: $color-disabled-text;
+//     cursor: not-allowed;
+//     box-shadow: none;
+//     transform: none;
+//   }
+
+//   &.is-loading {
+//     cursor: wait;
+//     opacity: 0.9;
+//   }
+// }
+
+// /* --- CONTENIDO INTERNO --- */
+// .button-content {
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   width: 100%; /* Asegura que el contenido use el espacio disponible */
+// }
+
+// /* Márgenes para los iconos */
+// .left-icon { margin-right: 8px; }
+// .right-icon { margin-left: 8px; }
+
+// /* --- SPINNER DE CARGA --- */
+// .button-spinner {
+//   box-sizing: border-box;
+//   display: block;
+//   position: absolute; /* Se posiciona sobre el botón */
+  
+//   /* Centrado absoluto perfecto */
+//   top: 50%;
+//   left: 50%;
+//   transform: translate(-50%, -50%); /* Lo mueve a su propio centro */
+  
+//   width: 24px;
+//   height: 24px;
+//   border: 3px solid rgba(255, 255, 255, 0.3);
+//   border-radius: 50%;
+//   border-top-color: $color-text-white;
+  
+//   /* Importante: Sobrescribimos la animación para incluir la rotación 
+//      pero manteniendo el translate del centrado */
+//   animation: spin 0.8s linear infinite;
+// }
+
+// @keyframes spin {
+//   /* La animación debe mantener el centrado (translate) y rotar */
+//   0% { transform: translate(-50%, -50%) rotate(0deg); }
+//   100% { transform: translate(-50%, -50%) rotate(360deg); }
+// }
+
+
+
+
+
+
+/* --- Variables --- */
+$color-primary: #341555;
+$color-primary-hover: #4a237a;
+$color-text-white: #ffffff;
+
+/* Colores para el botón secundario (Estilo Google) */
+$color-secondary-bg: #ffffff;
+$color-secondary-text: #341555; /* Texto morado */
+$color-secondary-border: #E0E0E0; /* Borde sutil igual a los inputs */
+$color-secondary-hover: #F8F7FC; /* Un gris/morado muy clarito al pasar el mouse */
+
+/* Estados Generales */
+$color-disabled-bg: #E0E0E0;
+$color-disabled-text: #A09BAF;
+$border-radius: 10px;
+$button-height: 50px; 
+
+.custom-button {
+  /* --- ESTRUCTURA BASE (Igual para todos los colores) --- */
+  width: 100%;
+  height: $button-height;
+  box-sizing: border-box;
+  padding: 0 24px;
+  border-radius: $border-radius;
+  
+  /* Tipografía Base */
+  font-family: 'Lato', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  
+  /* Layout */
+  display: flex;
+  justify-content: center;
+  align-items: center; 
+  position: relative;
+  
+  /* Comportamiento */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15);
+
+  /* --- VARIANTES DE COLOR --- */
+
+  /* 1. PRIMARY (Tu botón morado original) */
+  &.variant-primary {
+    background-color: $color-primary;
+    color: $color-text-white;
+    border: none;
+
+    &:hover:not(:disabled):not(.is-loading) {
+      background-color: $color-primary-hover;
+      box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2);
+      transform: translateY(-1px);
+    }
+    
+    &:active:not(:disabled):not(.is-loading) {
+      background-color: $color-primary; /* Reset color */
+    }
+
+    /* El spinner en fondo oscuro debe ser blanco */
+    .button-spinner {
+      border-top-color: $color-text-white;
+    }
+  }
+
+  /* 2. SECONDARY (Estilo Google / Botón Blanco) */
+  &.variant-secondary {
+    background-color: $color-secondary-bg;
+    color: $color-secondary-text;
+    border: 1px solid $color-secondary-border; /* Borde sutil */
+
+    &:hover:not(:disabled):not(.is-loading) {
+      background-color: $color-secondary-hover;
+      border-color: darken($color-secondary-border, 10%);
+      transform: translateY(-1px);
+    }
+
+    /* El spinner en fondo claro debe ser morado */
+    .button-spinner {
+      border-top-color: $color-primary;
+    }
+  }
+
+  /* --- ESTADOS COMUNES (Disabled / Loading) --- */
+  
+  &:active:not(:disabled):not(.is-loading) {
+    transform: translateY(0px);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    background-color: $color-disabled-bg;
+    color: $color-disabled-text;
+    border: 1px solid transparent; /* Quitamos borde si tenía */
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  &.is-loading {
+    cursor: wait;
+    opacity: 0.8;
+  }
+}
+
+/* --- CONTENIDO INTERNO --- */
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.left-icon { margin-right: 12px; font-size: 1.2rem; } /* Ajusté un poco el margen para el icono de Google */
+.right-icon { margin-left: 8px; }
+
+/* --- SPINNER DE CARGA --- */
+.button-spinner {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  width: 24px;
+  height: 24px;
+  
+  /* Borde base transparente */
+  border: 3px solid rgba(0, 0, 0, 0.1); 
+  border-radius: 50%;
+  
+  /* EL COLOR DEL SPINNER SE DEFINE DENTRO DE CADA VARIANTE ARRIBA */
+  
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+
+
+
+
+
+
+
+
+

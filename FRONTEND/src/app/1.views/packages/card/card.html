@@ -1,0 +1,32 @@
+
+<div class="card-container" [class.is-recommended]="config.recommended">
+
+  <div *ngIf="config.recommended" class="recommended-badge">
+    Recomendado
+  </div>
+
+  <div class="card-header">
+    <ng-content select="[card-title]"></ng-content>
+  </div>
+
+  <div class="card-features">
+    <ng-content select="[card-features]"></ng-content>
+  </div>
+
+  <div class="card-price">
+    <ng-content select="[card-price]"></ng-content>
+  </div>
+
+  
+
+  <div class="card-footer" *ngIf="config.buttonLabel">
+    <app-button 
+      [config]="{ 
+        label: config.buttonLabel!, 
+        onClick: config.onButtonClick,
+        color: config.recommended ? 'primary' : 'secondary' 
+      }">
+    </app-button>
+  </div>
+
+</div>

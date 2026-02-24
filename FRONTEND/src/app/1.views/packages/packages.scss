@@ -1,0 +1,80 @@
+.general_container {
+    width: 100dvw;
+    height: 100dvh;
+    background-color: white;
+    justify-items: center;
+    align-content: center;
+}
+
+h2 {
+    margin: 0;
+}
+
+.panel {
+    width: calc(100% - 30px);
+    height: calc(100% - 30px);
+    background-color: #d9d9d9;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.title {
+    text-align: center;
+    color: #0B2110;    
+}
+
+.description {
+    color: #0b21107c;
+}
+
+.cards {
+    display: flex;
+    overflow: auto;
+    height: fit-content;
+    gap: 1rem;
+    padding: 2.2rem;
+    // height: 50%;
+    max-width: 90%;
+}
+
+
+
+/* Variables (Mismas de tu sistema) */
+$color-primary: #341555;
+$color-text-gray: #666666; /* Gris para el texto según la foto */
+
+.help-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Centra verticalmente la línea con el texto */
+  width: 90%;
+  margin-top: 3rem;    /* Espacio separado de las tarjetas */
+  padding-bottom: 2rem; /* Espacio inferior por si es el final de página */
+  gap: 1rem;           /* Espacio entre la línea y el texto */
+  font-family: 'Lato', sans-serif;
+}
+
+.line {
+  flex-grow: 1;        /* MAGIA: Ocupa todo el espacio disponible */
+  height: 1px;         /* Grosor fino */
+  background-color: $color-primary; /* Tu morado */
+  opacity: 0.8;        /* Un poco sutil */
+  width: 100%;        /* Ancho de la línea */
+}
+
+.help-text {
+  font-size: 1rem;
+  color: $color-text-gray;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s ease;
+    text-align: end;
+  /* Opcional: Si quieres que al pasar el mouse se ponga morado */
+  &:hover {
+    color: $color-primary;
+    text-decoration: underline;
+  }
+}
